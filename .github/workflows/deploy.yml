@@ -33,13 +33,28 @@ jobs:
           push: true
           tags: paulchapi/roomiesmart-frontend:${{ env.TAG }}
 
-      - name: Deploy Frontend to AWS EC2
+      # DESPLIEGUE A DESARROLLO (Solo si es la rama dev)
+      - name: Deploy Frontend to Dev Environment
+        if: github.ref_name == 'dev'
         uses: appleboy/ssh-action@v1.0.3
         with:
-          host: ${{ secrets.AWS_HOST }}
+          host: ${{ secrets.AWS_HOST_DEV }}
           username: ubuntu
-          key: ${{ secrets.AWS_SSH_KEY }}
+          key: ${{ secrets.AWS_SSH_KEY_DEV }}
           script: |
             cd ~/roomiesmart-backend
-            docker pull paulchapi/roomiesmart-frontend:${{ env.TAG }}
+            docker pull paulchapi/roomiesmart-frontend:dev
             docker compose -f docker-compose.dev.yml up -d frontend
+
+      # DESPLIEGUE A PRODUCCIÓN (Solo si es la rama main)
+      - name: Deploy Frontend to Production Environment
+        if: github.ref_name == 'main'
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.AWS_HOST_PROD }}
+          username: ubuntu
+          key: ${{ secrets.AWS_SSH_KEY_PROD }}
+          script: |
+            cd ~/roomiesmart-production
+            docker pull paulchapi/roomiesmart-frontend:prod
+            docker compose -f docker-compose.prod.yml up -d frontend
