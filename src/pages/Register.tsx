@@ -1,40 +1,13 @@
-import React from 'react';
+
 import { Link } from 'react-router-dom';
+import { useRegister } from '../context/RegisterContext';
+import IconInput from '../components/ui/IconImput';
 
-// ==========================================
-// 1. COMPONENTES DE UI REUTILIZABLES
-// ==========================================
-
-interface IconInputProps {
-  label: string;
-  type: string;
-  placeholder: string;
-  icon: React.ReactNode;
-}
-
-function IconInput({ label, type, placeholder, icon }: IconInputProps) {
-  return (
-    <div>
-      <label className="mb-1.5 block text-xs font-semibold text-neutral">{label}</label>
-      <div className="relative">
-        <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
-          {icon}
-        </div>
-        <input 
-          type={type} 
-          placeholder={placeholder} 
-          className="w-full rounded-full border border-primary/20 bg-[#FFF9F8] py-3 pl-10 pr-4 text-sm text-secondary outline-none transition-all focus:border-primary focus:ring-1 focus:ring-primary" 
-        />
-      </div>
-    </div>
-  );
-}
-
-// ==========================================
-// 2. PANTALLA PRINCIPAL DE REGISTRO
-// ==========================================
 
 export default function Register() {
+    const { formData, updateFormData } = useRegister();
+
+    console.log(formData);
   const MailIcon = <svg className="h-4 w-4 text-neutral" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>;
   const LockIcon = <svg className="h-4 w-4 text-neutral" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>;
   const UserIcon = <svg className="h-4 w-4 text-neutral" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>;
@@ -80,37 +53,122 @@ export default function Register() {
           </div>
 
           <form className="space-y-4">
-            <IconInput label="Correo electrónico" type="email" placeholder="usuario@uce.edu.ec" icon={MailIcon} />
-            <IconInput label="Contraseña" type="password" placeholder="••••••••" icon={LockIcon} />
-            <IconInput label="Nombre Completo" type="text" placeholder="Ej. Alex Chen" icon={UserIcon} />
+                 <IconInput
+                    label="Correo electrónico"
+                    type="email"
+                    placeholder="usuario@uce.edu.ec"
+                    icon={MailIcon}
+                    value={formData.email}
+                    onChange={(e) =>
+                        updateFormData({
+                        email: e.target.value,
+                        })
+                    }
+                    />        
+                    <IconInput
+                        label="Contraseña"
+                        type="password"
+                        placeholder="••••••••"
+                        icon={LockIcon}
+                        value={formData.password}
+                        onChange={(e) =>
+                            updateFormData({
+                            password: e.target.value,
+                            })
+                        }
+                        />
+                    <IconInput
+                        label="Nombre Completo"
+                        type="text"
+                        placeholder="Ej. Alex Chen"
+                        icon={UserIcon}
+                        value={formData.name}
+                        onChange={(e) =>
+                            updateFormData({
+                            name: e.target.value,
+                            })
+                        }
+                        />
 
             <div className="flex gap-4">
               <div className="w-1/2">
-                <IconInput label="Edad" type="number" placeholder="21" icon={CalendarIcon} />
+                    <IconInput
+                        label="Edad"
+                        type="number"
+                        placeholder="21"
+                        icon={CalendarIcon}
+                        value={formData.age.toString()}
+                        onChange={(e) =>
+                            updateFormData({
+                            age: Number(e.target.value),
+                            })
+                        }
+                        />
               </div>
               <div className="w-1/2">
                 <label className="mb-1.5 block text-xs font-semibold text-neutral">Género</label>
                 <div className="relative">
                   <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">{GenderIcon}</div>
-                  <select className="w-full appearance-none rounded-full border border-primary/20 bg-[#FFF9F8] py-3 pl-10 pr-4 text-sm text-secondary outline-none transition-all focus:border-primary focus:ring-1 focus:ring-primary">
-                    <option value="" disabled selected>Seleccionar</option>
-                    <option value="m">Masculino</option>
-                    <option value="f">Femenino</option>
-                  </select>
+               <select
+                    value={formData.gender}
+                    onChange={(e) =>
+                        updateFormData({
+                        gender: e.target.value,
+                        })
+                    }
+                    className="w-full appearance-none rounded-full border border-primary/20 bg-[#FFF9F8] py-3 pl-10 pr-4 text-sm text-secondary outline-none transition-all focus:border-primary focus:ring-1 focus:ring-primary"
+                    >
+                    <option value="">Seleccionar</option>
+                    <option value="Masculino">Masculino</option>
+                    <option value="Femenino">Femenino</option>
+                    </select>
                 </div>
               </div>
             </div>
 
             <div className="flex gap-4">
               <div className="w-1/2">
-                <IconInput label="Semestre actual" type="text" placeholder="Ej. 5" icon={CalendarIcon} />
+                        <IconInput
+                        label="Semestre actual"
+                        type="text"
+                        placeholder="Ej. 5"
+                        icon={CalendarIcon}
+                        value={formData.semester}
+                        onChange={(e) =>
+                            updateFormData({
+                            semester: e.target.value,
+                            })
+                        }
+                        />
               </div>
               <div className="w-1/2">
-                <IconInput label="Carrera" type="text" placeholder="Ej. Arquitectura" icon={BookIcon} />
+                            <IconInput
+                                label="Carrera"
+                                type="text"
+                                placeholder="Ej. Arquitectura"
+                                icon={BookIcon}
+                                value={formData.career}
+                                onChange={(e) =>
+                                    updateFormData({
+                                    career: e.target.value,
+                                    })
+                                }
+                                />
               </div>
             </div>
 
-            <IconInput label="Ciudad de nacimiento" type="text" placeholder="Ej. Quito" icon={LocationIcon} />
+                        <IconInput
+                                label="Ciudad de nacimiento"
+                                type="text"
+                                placeholder="Ej. Quito"
+                                icon={LocationIcon}
+                                value={formData.birthCity}
+                                onChange={(e) =>
+                                    updateFormData({
+                                    birthCity: e.target.value,
+                                    })
+                                }
+                                />
 
             <div className="mt-8 flex items-center justify-between pt-4">
               <p className="text-xs text-neutral">
