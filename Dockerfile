@@ -4,6 +4,11 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm install
 COPY . .
+
+# 👇 INYECCIÓN DE LA VARIABLE PARA REACT/VITE 👇
+ARG VITE_API_BASE_URL
+ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
+
 RUN npm run build
 
 # Etapa 2: Servidor Web (Nginx)
