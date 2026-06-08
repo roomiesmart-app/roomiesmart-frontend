@@ -6,7 +6,7 @@ import { useLogin } from '../../../hooks/useOnboardingMutation';
 export default function Login() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({ email: '', password: '' });
-  
+
   const { mutate: login, isPending } = useLogin();
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -24,10 +24,10 @@ export default function Login() {
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-tr from-[#E6EEF9] via-white to-[#FDECE8] p-4 font-manrope">
       <div className="w-full max-w-[420px] rounded-[32px] bg-white px-8 py-10 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
         <div className="mb-8 text-center">
-          <div className="mx-auto mb-3 h-12 w-12 bg-gray-200"></div> 
+          <div className="mx-auto mb-3 h-12 w-12 bg-gray-200"></div>
           <h1 className="text-xl font-bold text-secondary">RoomieSmart</h1>
           <p className="mt-2 text-sm text-neutral">
-            Tu próximo hogar compartido<br/>comienza aquí.
+            Tu próximo hogar compartido<br />comienza aquí.
           </p>
         </div>
 
