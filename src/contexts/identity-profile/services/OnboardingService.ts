@@ -1,13 +1,14 @@
 import api from './api';
 
 export const OnboardingService = {
-  loginTenant: async (credentials: any) => {
-    const { data } = await api.post('/identity/login', credentials);
-    return data;
-  },
+  registerTenant: async (userData: any) => {
 
-  registerTenant: async (payload: any) => {
-    const { data } = await api.post('/identity/register', payload);
-    return data;
+    const response = await api.post('/api/v1/identity/register', userData);
+    return response.data;
+  },
+  
+  loginTenant: async (credentials: any) => {
+    const response = await api.post('/api/v1/identity/login', credentials);
+    return response.data;
   }
 };
