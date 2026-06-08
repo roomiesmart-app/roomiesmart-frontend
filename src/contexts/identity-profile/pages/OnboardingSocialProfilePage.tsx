@@ -1,6 +1,6 @@
 import { useOnboarding } from '../context/OnboardingContext';
 import { Link, useNavigate } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ONBOARDING_ROUTES } from '../../../app/routes/constant';
 import { validateSocial } from '../validators/SocialValidator';
 import type { SocialValidationErrors } from '../models/ValidationErrors';
@@ -11,6 +11,10 @@ export default function OnboardingSocialProfilePage() {
   const { social } = formData;
   const navigate = useNavigate();
   const [errors, setErrors] = useState<SocialValidationErrors>({});
+
+  useEffect(() => {
+    console.log("Current Full Form Data (Steps 1+2+3):", formData);
+  }, [formData]);
 
   const hobbiesOptions = ['Cocina', 'Gaming', 'Ejercicio', 'Fotografía', 'Lectura', 'Viajar', 'Yoga', 'Arte', 'Senderismo'];
   const musicOptions = ['Rap', 'Rock', 'Electronic', 'Reggaeton', 'Indie', 'Salsa', 'K-Pop', 'Jazz', 'Clásica'];

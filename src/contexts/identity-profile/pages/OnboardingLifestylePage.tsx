@@ -4,12 +4,17 @@ import { ONBOARDING_ROUTES } from '../../../app/routes/constant';
 import { validateLifestyle } from '../validators/LifestyleValidator';
 import type { LifestyleValidationErrors } from '../models/ValidationErrors';
 import { hasErrors } from '../../../shared/utils/validationHelper';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+
 export default function OnboardingLifestylePage() {
   const { formData, updateFormData } = useOnboarding();
   const { lifestyle } = formData;
   const navigate = useNavigate();
   const [errors, setErrors] = useState<LifestyleValidationErrors>({});
+
+  useEffect(() => {
+    console.log("Current Full Form Data (Persisting Step 1 + Step 2):", formData);
+  }, [formData]);
 
   const toggleSharedTask = (tarea: string) => {
     const currentTasks = lifestyle.sharedTasks;
@@ -33,7 +38,6 @@ export default function OnboardingLifestylePage() {
 
   return (
     <div className="flex min-h-screen flex-col bg-gradient-to-br from-[#FCF7F6] to-[#FDECE8] font-manrope">
-
       <header className="mx-auto flex w-full max-w-6xl items-center justify-between p-6">
         <div className="flex items-center gap-2">
           <span className="font-bold text-primary">RoomieSmart</span>
@@ -54,7 +58,6 @@ export default function OnboardingLifestylePage() {
           </p>
 
           <div className="space-y-10">
-
             <div>
               <label className="flex items-center gap-2 text-sm font-bold text-secondary mb-4">
                 🧹 Frecuencia de limpieza
@@ -90,7 +93,6 @@ export default function OnboardingLifestylePage() {
                 🕒 Ritmo de Vida Universitario
               </label>
               <div className="space-y-4">
-
                 <button
                   type="button"
                   onClick={() =>
@@ -199,7 +201,6 @@ export default function OnboardingLifestylePage() {
         >
           ← Anterior
         </Link>
-
         <div className="flex flex-col items-end">
           {Object.keys(errors).length > 0 && (
             <span className="text-red-500 text-xs font-bold mb-2 mr-2">

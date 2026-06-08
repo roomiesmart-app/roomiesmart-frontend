@@ -1,16 +1,24 @@
 import { useOnboarding } from '../context/OnboardingContext';
 import { Link, useNavigate } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ONBOARDING_ROUTES } from '../../../app/routes/constant';
 import { validateFinancial } from '../validators/FinancialValidator';
 import type { FinancialValidationErrors } from '../models/ValidationErrors';
 import { hasErrors } from '../../../shared/utils/validationHelper';
+import { useRegister } from '../../../hooks/useOnboardingMutation'; 
 
 export default function FinancialExpectationsOnboarding() {
   const { formData, updateFormData } = useOnboarding();
   const { financial } = formData;
   const navigate = useNavigate();
   const [errors, setErrors] = useState<FinancialValidationErrors>({});
+  
+  // Hook de mutación para el registro final
+  const { mutate: register, isPending } = useRegister();
+
+  useEffect(() => {
+    console.log("Final Full Data to be sent to Backend:", formData);
+  }, [formData]);
 
   const sharedItemsOptions = [
     'Nevera', 'Cafetera', 'Televisión', 'Productos limpieza', 
@@ -47,7 +55,18 @@ export default function FinancialExpectationsOnboarding() {
       setErrors(validationErrors);
       return;
     }
-    navigate('/login');
+
+    // Aquí enviamos la data acumulada al backend
+    register(formData, {
+      onSuccess: () => {
+        console.log("Registro exitoso!");
+        navigate('/login');
+      },
+      onError: (err) => {
+        console.error("Error al registrar usuario:", err);
+        alert("Hubo un error al guardar tu perfil. Inténtalo de nuevo.");
+      }
+    });
   };
 
   return (
@@ -137,7 +156,13 @@ export default function FinancialExpectationsOnboarding() {
           {hasErrors(errors) && (
             <span className="text-red-500 text-xs font-bold mb-2 mr-2">⚠️ {Object.values(errors)[0]}</span>
           )}
-          <button onClick={handleFinish} className="bg-[#A3513D] text-white px-10 py-3 rounded-full font-bold shadow-lg">Finalizar Perfil 🚀</button>
+          <button 
+            onClick={handleFinish} 
+            disabled={isPending}
+            className="bg-[#A3513D] text-white px-10 py-3 rounded-full font-bold shadow-lg disabled:opacity-50"
+          >
+            {isPending ? 'Finalizando...' : 'Finalizar Perfil 🚀'}
+          </button>
         </div>
       </footer>
     </div>

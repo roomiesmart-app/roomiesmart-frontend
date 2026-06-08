@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useOnboarding } from '../context/OnboardingContext';
 import { validateIdentityProfile } from '../validators/IdentityProfileValidator';
@@ -12,6 +12,10 @@ export default function OnboardingIdentityPage() {
   const { formData, updateFormData } = useOnboarding();
   const navigate = useNavigate();
   const [errors, setErrors] = useState<IdentityProfileErrors>({});
+
+  useEffect(() => {
+    console.log("Current Onboarding Data:", formData);
+  }, [formData]);
 
   const handleContinue = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -41,7 +45,6 @@ export default function OnboardingIdentityPage() {
       <main className="max-w-6xl mx-auto w-full">
         <section className="bg-white rounded-[40px] p-6 sm:p-10 shadow-xl border border-primary/5">
           <form onSubmit={handleContinue} className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            
             <TextField
               label="Nombre completo"
               placeholder="Ej. Carlos Mendoza"
