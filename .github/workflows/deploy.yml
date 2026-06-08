@@ -36,7 +36,7 @@ jobs:
           tags: paulchapi/roomiesmart-frontend:${{ env.TAG }}
           # 👇 AQUÍ DISPARAMOS LA VARIABLE AL DOCKERFILE 👇
           build-args: |
-            VITE_API_BASE_URL=
+            VITE_API_BASE_URL=http://52.7.189.106:3000
 
       # DESPLIEGUE A DESARROLLO (Solo si es la rama dev)
       - name: Deploy Frontend to Dev Environment
