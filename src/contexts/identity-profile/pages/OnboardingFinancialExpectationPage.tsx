@@ -56,16 +56,15 @@ export default function FinancialExpectationsOnboarding() {
       return;
     }
 
-    // Aquí enviamos la data acumulada al backend
     register(formData, {
       onSuccess: () => {
         console.log("Registro exitoso!");
         navigate('/login');
       },
-      onError: (err) => {
+      onError: (err: any) => {
         console.error("Error al registrar usuario:", err);
-        alert("Hubo un error al guardar tu perfil. Inténtalo de nuevo.");
-      }
+        console.log("Motivo del rechazo del backend:", err.response?.data);
+}
     });
   };
 
