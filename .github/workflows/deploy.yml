@@ -26,12 +26,17 @@ jobs:
             echo "TAG=dev" >> $GITHUB_ENV
           fi
 
+      # ... (todo lo de arriba queda igual) ...
+
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
           context: .
           push: true
           tags: paulchapi/roomiesmart-frontend:${{ env.TAG }}
+          # 👇 AQUÍ DISPARAMOS LA VARIABLE AL DOCKERFILE 👇
+          build-args: |
+            VITE_API_BASE_URL=/api/v1
 
       # DESPLIEGUE A DESARROLLO (Solo si es la rama dev)
       - name: Deploy Frontend to Dev Environment
@@ -40,7 +45,7 @@ jobs:
         with:
           host: ${{ secrets.AWS_HOST }}
           username: ubuntu
-          key: ${{ secrets.AWS_SSH_KEY}}
+          key: ${{ secrets.AWS_SSH_KEY }}
           script: |
             cd ~/roomiesmart-backend
             docker pull paulchapi/roomiesmart-frontend:dev
@@ -53,7 +58,7 @@ jobs:
         with:
           host: ${{ secrets.AWS_HOST }}
           username: ubuntu
-          key: ${{ secrets.AWS_SSH_KEY_ }}
+          key: ${{ secrets.AWS_SSH_KEY }} # <- Corregí el guion bajo extra que tenías aquí
           script: |
             cd ~/roomiesmart-production
             docker pull paulchapi/roomiesmart-frontend:prod
