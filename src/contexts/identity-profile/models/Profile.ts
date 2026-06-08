@@ -1,6 +1,4 @@
-// src/types/register.ts
-
-export interface RegisterFormData {
+export interface OnboardingProfile {
   name: string;
   email: string;
   password: string;
@@ -9,14 +7,12 @@ export interface RegisterFormData {
   career: string;
   semester: string;
   birthCity: string;
-
   lifestyle: {
     cleaningFrequency: string;
     isEarlyBird: boolean;
     useCommonAreasAtNight: boolean;
     sharedTasks: string[];
   };
-
   social: {
     hobbies: string[];
     musicGenres: string[];
@@ -24,7 +20,6 @@ export interface RegisterFormData {
     smokingPreference: string;
     socialLevel: string;
   };
-
   financial: {
     budgetRange: {
       min: number;
