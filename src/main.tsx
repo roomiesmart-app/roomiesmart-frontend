@@ -1,4 +1,4 @@
-import React from 'react'; // <--- ¡Faltaba esta importación!
+import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css'; 
 import App from './app/routes/App';
