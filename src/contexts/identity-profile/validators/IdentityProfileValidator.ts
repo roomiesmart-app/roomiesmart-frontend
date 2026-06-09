@@ -17,12 +17,14 @@ export const validateIdentityProfile = (formData: OnboardingProfile): IdentityPr
     errors.email = 'Debe ser un correo válido de la UCE';
   }
 
+  const passwordRegex = /^(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$/;
+  
   if (!formData.password) {
     errors.password = 'La contraseña es obligatoria';
-  } else if (formData.password.length < 8) {
-    errors.password = 'Debe tener al menos 8 caracteres';
+  } else if (!passwordRegex.test(formData.password)) {
+    errors.password = 'Debe tener al menos 8 caracteres y un símbolo especial';
   }
-
+  localStorage
   if (!formData.age || formData.age <= 0) {
     errors.age = 'La edad es obligatoria';
   } else if (formData.age < 16 || formData.age > 99) {
@@ -51,7 +53,6 @@ export const validateIdentityProfile = (formData: OnboardingProfile): IdentityPr
     errors.birthCity = 'La ciudad de nacimiento es obligatoria';
   } else if (!ONLY_LETTERS_REGEX.test(formData.birthCity)) {
     errors.birthCity = 'La ciudad solo puede contener letras';
-
   }
 
   return errors;

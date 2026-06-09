@@ -9,17 +9,16 @@ export default function Login() {
 
   const { mutate: login, isPending } = useLogin();
 
-  const handleSubmit = (e: React.FormEvent) => {
+const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     login(formData, {
-      onSuccess: (data) => {
-        if (data.token) localStorage.setItem('jwt', data.token);
+      onSuccess: (data: any) => { // <--- Añadimos ": any"
+        if (data?.token) localStorage.setItem('jwt', data.token);
         navigate('/dashboard');
       },
-      onError: (err) => console.error("Error al loguear:", err)
+      onError: (err: any) => console.error("Error al loguear:", err) // <--- Añadimos ": any"
     });
   };
-
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-tr from-[#E6EEF9] via-white to-[#FDECE8] p-4 font-manrope">
       <div className="w-full max-w-[420px] rounded-[32px] bg-white px-8 py-10 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
