@@ -7,11 +7,14 @@ export default function Login() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [showPassword, setShowPassword] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   const { mutate: login, isPending } = useLogin();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setErrorMessage('');
+    
     login(formData, {
       onSuccess: (data: any) => {
         if (data?.token) localStorage.setItem('jwt', data.token);
@@ -19,7 +22,18 @@ export default function Login() {
         
         navigate('/dashboard');
       },
-      onError: (err: any) => console.error(err)
+      onError: (err: any) => {
+        const status = err.response?.status;
+        const backendMsg = err.response?.data?.message || err.response?.data?.error;
+
+        if (status === 404 || backendMsg?.toLowerCase().includes('not found')) {
+          setErrorMessage('Este correo no tiene cuenta. ¡Regístrate gratis!');
+        } else if (status === 401 || status === 400 || backendMsg?.toLowerCase().includes('invalid')) {
+          setErrorMessage('La contraseña o el correo son incorrectos.');
+        } else {
+          setErrorMessage(backendMsg || 'No se pudo iniciar sesión. Verifica tus datos.');
+        }
+      }
     });
   };
 
@@ -33,6 +47,12 @@ export default function Login() {
             Tu próximo hogar compartido<br />comienza aquí.
           </p>
         </div>
+
+        {errorMessage && (
+          <div className="mb-5 rounded-2xl bg-[#FFF5F3] p-4 text-center text-sm font-bold text-[#A3513D] border border-[#F2E3DB]">
+            {errorMessage}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
