@@ -12,8 +12,7 @@ export default function FinancialExpectationsOnboarding() {
   const { financial } = formData;
   const navigate = useNavigate();
   const [errors, setErrors] = useState<FinancialValidationErrors>({});
-  
-  // Hook de mutación para el registro final
+
   const { mutate: register, isPending } = useRegister();
 
   useEffect(() => {
@@ -56,7 +55,45 @@ export default function FinancialExpectationsOnboarding() {
       return;
     }
 
-    register(formData, {
+    const formattedData = {
+      name: formData.name,
+      email: formData.email,
+      password: formData.password,
+      preferences: {
+        profile: {
+          age: Number(formData.age),
+          gender: formData.gender,
+          birthCity: formData.birthCity,
+          career: formData.career,
+          semester: formData.semester
+        },
+        lifestyle: {
+          cleaningFrequency: formData.lifestyle.cleaningFrequency,
+          isEarlyBird: formData.lifestyle.isEarlyBird,
+          useCommonAreasAtNight: formData.lifestyle.useCommonAreasAtNight,
+          sharedTasks: formData.lifestyle.sharedTasks || []
+        },
+        social: {
+          hobbies: formData.social.hobbies || [],
+          musicGenres: formData.social.musicGenres || [],
+          petPreference: formData.social.petPreference,
+          smokingPreference: formData.social.smokingPreference,
+          socialLevel: formData.social.socialLevel
+        },
+        financial: {
+          budgetRange: {
+            min: Number(formData.financial.budgetRange.min),
+            max: Number(formData.financial.budgetRange.max)
+          },
+          roomType: formData.financial.roomType,
+          preferredCommonAreas: formData.financial.preferredCommonAreas || [],
+          expenseManagement: formData.financial.expenseManagement,
+          sharedItems: formData.financial.sharedItems || []
+        }
+      }
+    };
+
+    register(formattedData, {
       onSuccess: () => {
         console.log("Registro exitoso!");
         navigate('/login');
@@ -64,7 +101,7 @@ export default function FinancialExpectationsOnboarding() {
       onError: (err: any) => {
         console.error("Error al registrar usuario:", err);
         console.log("Motivo del rechazo del backend:", err.response?.data);
-}
+      }
     });
   };
 
