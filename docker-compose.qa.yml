@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  frontend:
+    container_name: roomiesmart_frontend_qa
+    image: paulchapi/roomiesmart-frontend:qa
+    ports:
+      - "80:80"
+    restart: always
+
+  api-dev:
+    container_name: roomiesmart_api_qa
+    image: paulchapi/roomiesmart-backend:qa
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    restart: always

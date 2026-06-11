@@ -83,4 +83,4 @@ jobs:
           script: |
             cd ~/roomiesmart-qa
             docker pull paulchapi/roomiesmart-frontend:qa
-            docker compose up -d frontend
+            docker compose -f docker-compose.qa.yml up -d frontend
