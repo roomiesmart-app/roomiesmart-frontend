@@ -25,7 +25,7 @@ jobs:
             echo "API_URL=http://52.7.189.106:8080" >> $GITHUB_ENV # Mantiene tu IP original
           elif [ "${{ github.ref_name }}" == "qa" ]; then
             echo "TAG=qa" >> $GITHUB_ENV
-            echo "API_URL=http://${{ secrets.AWS_HOST_QA }}:3000" >> $GITHUB_ENV # Nueva IP solo para QA
+            echo "API_URL=http://${{ secrets.AWS_HOST_QA }}" >> $GITHUB_ENV # Nueva IP solo para QA
           else
             echo "TAG=dev" >> $GITHUB_ENV
             echo "API_URL=http://52.7.189.106:8080" >> $GITHUB_ENV # Mantiene tu IP original
@@ -83,4 +83,4 @@ jobs:
           script: |
             cd ~/roomiesmart-qa
             docker pull paulchapi/roomiesmart-frontend:qa
-            docker compose -f docker-compose.qa.yml up -d frontend
+            docker compose up -d frontend
