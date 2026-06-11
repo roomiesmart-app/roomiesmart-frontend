@@ -62,25 +62,10 @@ jobs:
         if: github.ref_name == 'main'
         uses: appleboy/ssh-action@v1.0.3
         with:
-          host: ${{ secrets.AWS_HOST }}
+          host: ${{ secrets.AWS_HOST_PROD }} # CORREGIDO: Apunta al servidor de PROD
           username: ubuntu
           key: ${{ secrets.AWS_SSH_KEY }}
           script: |
             cd ~/roomiesmart-production
             docker pull paulchapi/roomiesmart-frontend:prod
             docker compose -f docker-compose.prod.yml up -d frontend
-
-      # =========================================================
-      # DESPLIEGUE A QA (NUEVO - Solo se ejecuta si estás en qa)
-      # =========================================================
-      - name: Deploy Frontend to QA Environment
-        if: github.ref_name == 'qa'
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.AWS_HOST_QA }}
-          username: ubuntu
-          key: ${{ secrets.AWS_SSH_KEY }}
-          script: |
-            cd ~/roomiesmart-qa
-            docker pull paulchapi/roomiesmart-frontend:qa
-            docker compose up -d frontend
