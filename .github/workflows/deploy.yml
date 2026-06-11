@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 name: Build and Deploy Frontend (QA)
 
 on:
@@ -6,6 +7,16 @@ on:
 
 jobs:
   build-and-deploy-qa:
+=======
+name: Build and Deploy Frontend
+
+on:
+  push:
+    branches: [ "dev", "main" ]
+
+jobs:
+  build-and-push:
+>>>>>>> dev
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -17,11 +28,27 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+<<<<<<< HEAD
       - name: Build and push QA Docker image
+=======
+      - name: Determine environment tag
+        id: environment
+        run: |
+          if [ "${{ github.ref_name }}" == "main" ]; then
+            echo "TAG=prod" >> $GITHUB_ENV
+          else
+            echo "TAG=dev" >> $GITHUB_ENV
+          fi
+
+      # ... (todo lo de arriba queda igual) ...
+
+      - name: Build and push Docker image
+>>>>>>> dev
         uses: docker/build-push-action@v5
         with:
           context: .
           push: true
+<<<<<<< HEAD
           tags: paulchapi/roomiesmart-frontend:qa
           # Inyectamos la IP del servidor de QA directamente en la compilación
           build-args: |
@@ -38,3 +65,35 @@ jobs:
             docker pull paulchapi/roomiesmart-frontend:qa
             # Levantamos usando el docker-compose nativo de la máquina
             docker compose up -d frontend
+=======
+          tags: paulchapi/roomiesmart-frontend:${{ env.TAG }}
+          # 👇 AQUÍ DISPARAMOS LA VARIABLE AL DOCKERFILE 👇
+          build-args: |
+            VITE_API_BASE_URL=http://52.7.189.106:8080
+
+      # DESPLIEGUE A DESARROLLO (Solo si es la rama dev)
+      - name: Deploy Frontend to Dev Environment
+        if: github.ref_name == 'dev'
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.AWS_HOST }}
+          username: ubuntu
+          key: ${{ secrets.AWS_SSH_KEY }}
+          script: |
+            cd ~/roomiesmart-backend
+            docker pull paulchapi/roomiesmart-frontend:dev
+            docker compose -f docker-compose.dev.yml up -d frontend
+
+      # DESPLIEGUE A PRODUCCIÓN (Solo si es la rama main)
+      - name: Deploy Frontend to Production Environment
+        if: github.ref_name == 'main'
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.AWS_HOST }}
+          username: ubuntu
+          key: ${{ secrets.AWS_SSH_KEY }} # <- Corregí el guion bajo extra que tenías aquí
+          script: |
+            cd ~/roomiesmart-production
+            docker pull paulchapi/roomiesmart-frontend:prod
+            docker compose -f docker-compose.prod.yml up -d frontend
+>>>>>>> dev
