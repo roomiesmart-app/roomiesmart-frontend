@@ -51,7 +51,7 @@ export default function OnboardingSocialProfilePage() {
         <div className="lg:col-span-8 space-y-10">
           <div>
             <p className="text-sm text-neutral mb-2">Estilo de vida</p>
-            <h1 className="text-2xl font-bold text-secondary mb-4">Paso 3 de 4: Encontrando tu ritmo social.</h1>
+            <h1 className="text-2xl font-bold text-secondary mb-4">Encontrando tu ritmo social.</h1>
             <div className="w-full h-2 bg-gray-200 rounded-full"><div className="w-[75%] h-full bg-[#A3513D] rounded-full"></div></div>
           </div>
 
