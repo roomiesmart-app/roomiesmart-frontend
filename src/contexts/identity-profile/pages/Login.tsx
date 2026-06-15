@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ONBOARDING_ROUTES } from '../../../app/routes/constant';
 import { useLogin } from '../../../hooks/useOnboardingMutation';
+import logoRoomie from '../../../assets/RoomieSmart.png';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -41,7 +42,7 @@ export default function Login() {
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-tr from-[#E6EEF9] via-white to-[#FDECE8] p-4 font-manrope">
       <div className="w-full max-w-[420px] rounded-[32px] bg-white px-8 py-10 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
         <div className="mb-8 text-center">
-          <div className="mx-auto mb-3 h-12 w-12 bg-gray-200"></div>
+          <img src={logoRoomie} alt="Logo RoomieSmart" className="mx-auto mb-3 h-16 w-auto object-contain" />
           <h1 className="text-xl font-bold text-secondary">RoomieSmart</h1>
           <p className="mt-2 text-sm text-neutral">
             Tu próximo hogar compartido<br />comienza aquí.
@@ -135,7 +136,7 @@ export default function Login() {
         <p className="mt-8 text-center text-sm font-medium text-neutral">
           ¿No tienes una cuenta?{' '}
           <Link to={ONBOARDING_ROUTES.IDENTITY} className="font-bold text-primary hover:underline">
-            Regístrate gratis
+            Regístrate aquí
           </Link>
         </p>
       </div>

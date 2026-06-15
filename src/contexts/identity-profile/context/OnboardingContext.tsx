@@ -1,4 +1,4 @@
-/* eslint-disable react-refresh/only-export-components -- context provider and hook live together by design */
+/* eslint-disable react-refresh/only-export-components */
 import React, { createContext, useContext, useState } from "react";
 import type { OnboardingProfile } from "../models/Profile";
 
@@ -27,10 +27,10 @@ const initialState: OnboardingProfile = {
     musicGenres: [],
     petPreference: "",
     smokingPreference: "",
-    socialLevel: "",
+    socialLevel: "Equilibrado",
   },
   financial: {
-    budgetRange: { min: 150, max: 200 },
+    budgetRange: { min: 150, max: 300 },
     roomType: "",
     preferredCommonAreas: [],
     expenseManagement: "",

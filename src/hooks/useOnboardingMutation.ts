@@ -9,7 +9,6 @@ export const useRegister = () => {
   });
 };
 
-// ¡Añade esto aquí abajo!
 export const useLogin = () => {
   return useMutation({
     mutationFn: async (credentials: any) => {
