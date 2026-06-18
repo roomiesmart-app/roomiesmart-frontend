@@ -26,10 +26,10 @@ jobs:
             echo "API_URL=http://${{ secrets.AWS_HOST_PROD }}:8080" >> $GITHUB_ENV # Puerto 8080 mantenido
           elif [ "${{ github.ref_name }}" == "qa" ]; then
             echo "TAG=qa" >> $GITHUB_ENV
-            echo "API_URL=http://${{ secrets.AWS_HOST_QA }}:8080" >> $GITHUB_ENV # Puerto 8080 mantenido
+            echo "API_URL=http://${{ secrets.AWS_HOST_QA }}" >> $GITHUB_ENV
           else
             echo "TAG=dev" >> $GITHUB_ENV
-            echo "API_URL=http://${{ secrets.AWS_HOST }}:8080" >> $GITHUB_ENV # Puerto 8080 mantenido
+            echo "API_URL=http://${{ secrets.AWS_HOST }}" >> $GITHUB_ENV
           fi
 
       - name: Build and push Docker image
