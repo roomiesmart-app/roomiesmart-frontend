@@ -30,12 +30,11 @@ export default function OnboardingIdentityPage() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col bg-gradient-to-br from-[#FCF7F6] to-[#FDECE8] p-4 sm:p-8 font-manrope">
+    <>
       <div className="max-w-6xl mx-auto w-full mb-8 mt-4 sm:mt-0">
         <p className="text-sm text-neutral mb-2">Identidad</p>
         <div className="flex justify-between items-center mb-4">
-          <h1 className="text-xl sm:text-2xl font-bold text-secondary">Paso 1 de 4: Crea tu perfil base.</h1>
-          <span className="text-sm font-bold text-primary">Paso 1</span>
+          <h1 className="text-xl sm:text-2xl font-bold text-secondary">Crea tu perfil base.</h1>
         </div>
         <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
           <div className="w-1/4 h-full bg-primary rounded-full transition-all duration-500"></div>
@@ -130,6 +129,6 @@ export default function OnboardingIdentityPage() {
           </form>
         </section>
       </main>
-    </div>
+    </>
   );
 }

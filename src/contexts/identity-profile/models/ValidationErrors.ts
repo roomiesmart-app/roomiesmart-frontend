@@ -11,8 +11,9 @@ export interface IdentityProfileErrors {
 
 export interface LifestyleValidationErrors {
   cleaningFrequency?: string;
+  rhythm?: string;
+  sharedTasks?: string;
 }
-
 export interface SocialValidationErrors {
   hobbies?: string;
   musicGenres?: string;
