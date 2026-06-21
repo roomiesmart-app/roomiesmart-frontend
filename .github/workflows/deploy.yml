@@ -33,6 +33,7 @@ jobs:
             echo "API_URL=http://${{ secrets.AWS_HOST }}" >> $GITHUB_ENV
           fi
 
+
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
