@@ -23,10 +23,11 @@ jobs:
         run: |
           if [ "${{ github.ref_name }}" == "main" ]; then
             echo "TAG=prod" >> $GITHUB_ENV
-            echo "API_URL=http://${{ secrets.AWS_HOST_PROD }}:8080" >> $GITHUB_ENV # Puerto 8080 mantenido
+            echo "API_URL=http://roomiesmartprod.programacionwebuce.net" >> $GITHUB_ENV 
           elif [ "${{ github.ref_name }}" == "qa" ]; then
             echo "TAG=qa" >> $GITHUB_ENV
-            echo "API_URL=http://${{ secrets.AWS_HOST_QA }}" >> $GITHUB_ENV
+            # ✅ Solo el dominio exacto, sin el /api al final
+            echo "API_URL=http://roomiesmartqa.programacionwebuce.net" >> $GITHUB_ENV
           else
             echo "TAG=dev" >> $GITHUB_ENV
             echo "API_URL=http://${{ secrets.AWS_HOST }}" >> $GITHUB_ENV
