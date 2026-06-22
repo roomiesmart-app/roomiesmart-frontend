@@ -37,26 +37,22 @@ export default function OnboardingLifestylePage() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col bg-gradient-to-br from-[#FCF7F6] to-[#FDECE8] font-manrope">
-      <header className="mx-auto flex w-full max-w-6xl items-center justify-between p-6">
-        <div className="flex items-center gap-2">
-          <span className="font-bold text-primary">RoomieSmart</span>
+    <>
+      <div className="max-w-6xl mx-auto w-full mb-8 mt-4 sm:mt-0">
+        <p className="text-sm text-neutral mb-2">Hábitos y Limpieza</p>
+        <div className="flex justify-between items-center mb-4">
+          <h1 className="text-xl sm:text-2xl font-bold text-secondary">Cultivando la armonía</h1>
         </div>
-        <div className="flex items-center gap-4">
-          <span className="text-sm font-medium text-gray-500 hidden sm:block">Hábitos y Limpieza | Paso 2 de 4</span>
-          <Link to="#" className="text-sm font-semibold text-secondary hover:underline">
-            Guardar y Salir
-          </Link>
+        <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+          <div className="w-2/4 h-full bg-primary rounded-full transition-all duration-500"></div>
         </div>
-      </header>
+        <p className="text-neutral mt-6 text-sm sm:text-base">
+          La convivencia empieza por los acuerdos. Cuéntanos cómo prefieres gestionar el espacio compartido para encontrar a tu roomie ideal.
+        </p>
+      </div>
 
-      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
-        <section>
-          <h1 className="text-3xl font-bold text-secondary mb-2">Cultivando la armonía</h1>
-          <p className="text-neutral mb-8 text-sm sm:text-base">
-            La convivencia empieza por los acuerdos. Cuéntanos cómo prefieres gestionar el espacio compartido para encontrar a tu roomie ideal.
-          </p>
-
+      <main className="mx-auto w-full max-w-6xl flex-1 grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
+        <section className="bg-white rounded-[40px] p-6 sm:p-10 shadow-xl border border-primary/5">
           <div className="space-y-10">
             <div>
               <label className="flex items-center gap-2 text-sm font-bold text-secondary mb-4">
@@ -177,7 +173,7 @@ export default function OnboardingLifestylePage() {
           </div>
         </section>
 
-        <section className="bg-primary/5 rounded-[32px] p-6 sm:p-8 flex flex-col items-center justify-center text-center mt-8 lg:mt-0 cursor-default select-none">
+        <section className="bg-primary/5 rounded-[40px] p-6 sm:p-8 flex flex-col items-center justify-center text-center mt-8 lg:mt-0 cursor-default select-none border border-primary/10">
           <div className="w-full bg-white rounded-[24px] p-6 shadow-sm border border-primary/10 pointer-events-none">
             <div className="h-32 sm:h-40 bg-orange-50 rounded-xl mb-6 flex items-center justify-center">
                <span className="text-4xl">🪴</span>
@@ -194,12 +190,12 @@ export default function OnboardingLifestylePage() {
         </section>
       </main>
 
-      <footer className="mx-auto w-full max-w-6xl p-4 sm:p-6 flex flex-col sm:flex-row justify-between items-center bg-white/50 backdrop-blur-sm lg:bg-transparent gap-4">
+      <footer className="mx-auto w-full max-w-6xl mt-8 mb-4 flex flex-col sm:flex-row justify-between items-center gap-4 border-t border-gray-200 pt-6">
         <Link
           to={ONBOARDING_ROUTES.IDENTITY}
           className="text-sm font-bold text-neutral hover:text-secondary transition-all px-4 py-2"
         >
-          ← Anterior
+          ← Volver al Paso 1
         </Link>
         <div className="flex flex-col items-end">
           {Object.keys(errors).length > 0 && (
@@ -212,10 +208,10 @@ export default function OnboardingLifestylePage() {
             onClick={handleContinue}
             className="bg-primary px-6 sm:px-8 py-3 sm:py-3.5 rounded-full text-sm font-bold text-white hover:bg-[#a3513d] transition-all shadow-lg shadow-primary/20 active:scale-95"
           >
-            Continuar <span className="hidden sm:inline">al Perfil Social</span>
+            Continuar al Paso 3
           </button>
         </div>
       </footer>
-    </div>
+    </>
   );
 }

@@ -5,13 +5,14 @@ import { ONBOARDING_ROUTES } from '../../../app/routes/constant';
 import { validateFinancial } from '../validators/FinancialValidator';
 import type { FinancialValidationErrors } from '../models/ValidationErrors';
 import { hasErrors } from '../../../shared/utils/validationHelper';
-import { useRegister } from '../../../hooks/useOnboardingMutation'; 
+import { useRegister } from '../../../hooks/useOnboardingMutation';
 
 export default function FinancialExpectationsOnboarding() {
   const { formData, updateFormData } = useOnboarding();
   const { financial } = formData;
   const navigate = useNavigate();
   const [errors, setErrors] = useState<FinancialValidationErrors>({});
+  const [backendError, setBackendError] = useState<string | null>(null);
 
   const { mutate: register, isPending } = useRegister();
 
@@ -49,7 +50,9 @@ export default function FinancialExpectationsOnboarding() {
   };
 
   const handleFinish = () => {
+    setBackendError(null);
     const validationErrors = validateFinancial(financial);
+    
     if (hasErrors(validationErrors)) {
       setErrors(validationErrors);
       return;
@@ -95,12 +98,23 @@ export default function FinancialExpectationsOnboarding() {
 
     register(formattedData, {
       onSuccess: () => {
-        console.log("Registro exitoso!");
         navigate('/login');
       },
-      onError: (err: any) => {
-        console.error("Error al registrar usuario:", err);
-        console.log("Motivo del rechazo del backend:", err.response?.data);
+      onError: (error: any) => {
+        const status = error.response?.status;
+        const serverMessage = error.response?.data?.message || error.response?.data?.error || '';
+
+        if (!error.response) {
+          setBackendError('No hay conexión con el servidor. Revisa tu internet.');
+        } else if (status === 409 || serverMessage.toLowerCase().includes('exists')) {
+          setBackendError('Este correo ya está registrado. Por favor, intenta iniciar sesión.');
+        } else if (status === 400) {
+          setBackendError('Hay un problema con los datos enviados. Revisa que todo esté correcto.');
+        } else if (status === 500) {
+          setBackendError('Nuestros servidores están teniendo problemas. Inténtalo en unos minutos.');
+        } else {
+          setBackendError(serverMessage || 'Ocurrió un error inesperado al crear tu perfil.');
+        }
       }
     });
   };
@@ -108,8 +122,7 @@ export default function FinancialExpectationsOnboarding() {
   return (
     <div className="min-h-screen bg-[#FDF9F8] p-4 sm:p-8 font-manrope">
       <header className="max-w-6xl mx-auto flex justify-between items-center mb-10">
-        <span className="font-bold text-primary">RoomieSmart</span>
-        <div className="text-sm font-bold">Guardar borrador | Paso 4 de 4</div>
+        <div className="text-sm font-bold">Presupuesto y finanzas</div>
       </header>
 
       <main className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -188,7 +201,12 @@ export default function FinancialExpectationsOnboarding() {
 
       <footer className="max-w-6xl mx-auto mt-12 flex justify-between items-center py-6 border-t border-gray-200">
         <Link to={ONBOARDING_ROUTES.SOCIAL} className="font-bold">← Atrás</Link>
-        <div className="flex flex-col items-end">
+        <div className="flex flex-col items-end gap-3">
+          {backendError && (
+            <div className="animate-fade-in rounded-xl bg-[#FFF5F3] px-4 py-3 text-sm font-bold text-[#A3513D] border border-[#F2E3DB] shadow-sm">
+              ⚠️ {backendError}
+            </div>
+          )}
           {hasErrors(errors) && (
             <span className="text-red-500 text-xs font-bold mb-2 mr-2">⚠️ {Object.values(errors)[0]}</span>
           )}
