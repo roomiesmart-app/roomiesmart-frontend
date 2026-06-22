@@ -1,6 +1,6 @@
 export const ONBOARDING_ROUTES = {
-  IDENTITY: '/register/step-1',
-  LIFESTYLE: '/register/step-2',
-  SOCIAL: '/register/step-3',
-  FINANCIAL: '/register/step-4',
+  IDENTITY: '/onboarding/step-1',
+  LIFESTYLE: '/onboarding/step-2',
+  SOCIAL: '/onboarding/step-3',
+  FINANCIAL: '/onboarding/step-4',
 };

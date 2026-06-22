@@ -94,3 +94,4 @@ export const MatchmakingDashboardPage: React.FC = () => {
     </div>
   );
 };
+export default MatchmakingDashboardPage;
