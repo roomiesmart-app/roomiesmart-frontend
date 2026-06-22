@@ -24,15 +24,16 @@ jobs:
           if [ "${{ github.ref_name }}" == "main" ]; then
             echo "TAG=prod" >> $GITHUB_ENV
             echo "API_URL=http://roomiesmartprod.programacionwebuce.net" >> $GITHUB_ENV 
+            echo "AUTH_URI=http://roomiesmartprod.programacionwebuce.net" >> $GITHUB_ENV
           elif [ "${{ github.ref_name }}" == "qa" ]; then
             echo "TAG=qa" >> $GITHUB_ENV
-            # ✅ Solo el dominio exacto, sin el /api al final
             echo "API_URL=http://roomiesmartqa.programacionwebuce.net" >> $GITHUB_ENV
+            echo "AUTH_URI=http://roomiesmartqa.programacionwebuce.net" >> $GITHUB_ENV
           else
             echo "TAG=dev" >> $GITHUB_ENV
             echo "API_URL=http://${{ secrets.AWS_HOST }}" >> $GITHUB_ENV
+            echo "AUTH_URI=http://${{ secrets.AWS_HOST }}" >> $GITHUB_ENV
           fi
-
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
@@ -42,6 +43,8 @@ jobs:
           tags: paulchapi/roomiesmart-frontend:${{ env.TAG }}
           build-args: |
             VITE_API_BASE_URL=${{ env.API_URL }}
+            VITE_AUTH_REDIRECT_URI=${{ env.AUTH_URI }}
+            VITE_CLERK_PUBLISHABLE_KEY=${{ secrets.VITE_CLERK_PUBLISHABLE_KEY }}
 
       # =========================================================
       # DESPLIEGUE A DESARROLLO
