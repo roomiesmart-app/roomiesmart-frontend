@@ -1,6 +1,7 @@
-import { useOnboarding } from '../context/OnboardingContext';
-import { Link, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useUser } from '@clerk/clerk-react';
+import { useOnboarding } from '../context/OnboardingContext';
 import { ONBOARDING_ROUTES } from '../../../app/routes/constant';
 import { validateFinancial } from '../validators/FinancialValidator';
 import type { FinancialValidationErrors } from '../models/ValidationErrors';
@@ -8,6 +9,7 @@ import { hasErrors } from '../../../shared/utils/validationHelper';
 import { useRegister } from '../../../hooks/useOnboardingMutation';
 
 export default function FinancialExpectationsOnboarding() {
+  const { user } = useUser();
   const { formData, updateFormData } = useOnboarding();
   const { financial } = formData;
   const navigate = useNavigate();
@@ -15,10 +17,6 @@ export default function FinancialExpectationsOnboarding() {
   const [backendError, setBackendError] = useState<string | null>(null);
 
   const { mutate: register, isPending } = useRegister();
-
-  useEffect(() => {
-    console.log("Final Full Data to be sent to Backend:", formData);
-  }, [formData]);
 
   const sharedItemsOptions = [
     'Nevera', 'Cafetera', 'Televisión', 'Productos limpieza', 
@@ -61,44 +59,48 @@ export default function FinancialExpectationsOnboarding() {
     const formattedData = {
       name: formData.name,
       email: formData.email,
-      password: formData.password,
       preferences: {
         profile: {
-          age: Number(formData.age),
-          gender: formData.gender,
-          birthCity: formData.birthCity,
-          career: formData.career,
-          semester: formData.semester
+          age: Number(formData.age) || 0,
+          gender: formData.gender || '',
+          birthCity: formData.birthCity || '',
+          career: formData.career || '',
+          semester: formData.semester || ''
         },
         lifestyle: {
-          cleaningFrequency: formData.lifestyle.cleaningFrequency,
-          isEarlyBird: formData.lifestyle.isEarlyBird,
-          useCommonAreasAtNight: formData.lifestyle.useCommonAreasAtNight,
-          sharedTasks: formData.lifestyle.sharedTasks || []
+          cleaningFrequency: formData.lifestyle?.cleaningFrequency || '',
+          isEarlyBird: formData.lifestyle?.isEarlyBird || false,
+          useCommonAreasAtNight: formData.lifestyle?.useCommonAreasAtNight || false,
+          sharedTasks: formData.lifestyle?.sharedTasks || []
         },
         social: {
-          hobbies: formData.social.hobbies || [],
-          musicGenres: formData.social.musicGenres || [],
-          petPreference: formData.social.petPreference,
-          smokingPreference: formData.social.smokingPreference,
-          socialLevel: formData.social.socialLevel
+          hobbies: formData.social?.hobbies || [],
+          musicGenres: formData.social?.musicGenres || [],
+          petPreference: formData.social?.petPreference || '',
+          smokingPreference: formData.social?.smokingPreference || '',
+          socialLevel: formData.social?.socialLevel || ''
         },
         financial: {
           budgetRange: {
-            min: Number(formData.financial.budgetRange.min),
-            max: Number(formData.financial.budgetRange.max)
+            min: Number(formData.financial?.budgetRange?.min) || 150,
+            max: Number(formData.financial?.budgetRange?.max) || 300
           },
-          roomType: formData.financial.roomType,
-          preferredCommonAreas: formData.financial.preferredCommonAreas || [],
-          expenseManagement: formData.financial.expenseManagement,
-          sharedItems: formData.financial.sharedItems || []
+          roomType: formData.financial?.roomType || 'Privada',
+          preferredCommonAreas: formData.financial?.preferredCommonAreas || [],
+          expenseManagement: formData.financial?.expenseManagement || 'División Digital',
+          sharedItems: formData.financial?.sharedItems || []
         }
       }
     };
 
     register(formattedData, {
-      onSuccess: () => {
-        navigate('/login');
+      onSuccess: async () => {
+        if (user) {
+          await user.update({
+            unsafeMetadata: { onboardingCompleted: true }
+          });
+        }
+        navigate('/dashboard', { replace: true });
       },
       onError: (error: any) => {
         const status = error.response?.status;

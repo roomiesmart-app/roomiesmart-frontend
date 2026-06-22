@@ -1,28 +1,14 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useUser } from '@clerk/clerk-react';
 
-export const WelcomeDashboardPage: React.FC = () => {
+export const WelcomePage: React.FC = () => {
   const navigate = useNavigate();
-  const [firstName, setFirstName] = useState("Roomie");
-  const [lastName, setLastName] = useState("");
+  const { user } = useUser();
 
-  useEffect(() => {
-    const sessionData = localStorage.getItem('user');
-    
-    if (sessionData) {
-      try {
-        const { name } = JSON.parse(sessionData);
-        if (name) {
-          const nameParts = name.trim().split(' ');
-          setFirstName(nameParts[0]);
-          setLastName(nameParts.slice(1).join(' '));
-        }
-      } catch (error) {
-        setFirstName("Roomie");
-      }
-    }
-  }, []);
-  
+  const firstName = user?.firstName || "Roomie";
+  const lastName = user?.lastName || "";
+
   const metrics = [
     { label: "MATCHES", value: "12" },
     { label: "MENSAJES", value: "3" },
@@ -44,8 +30,12 @@ export const WelcomeDashboardPage: React.FC = () => {
             <p className="text-sm font-bold">{firstName} {lastName}</p>
             <p className="text-xs text-gray-500">Universidad Central</p>
           </div>
-          <div className="w-10 h-10 bg-gray-300 rounded-full overflow-hidden">
-            <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${firstName}`} alt="Avatar" />
+          <div className="w-10 h-10 bg-gray-300 rounded-full overflow-hidden flex items-center justify-center">
+            <img 
+              src={user?.imageUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${firstName}`} 
+              alt="Avatar" 
+              className="w-full h-full object-cover"
+            />
           </div>
         </div>
       </header>
@@ -137,3 +127,5 @@ export const WelcomeDashboardPage: React.FC = () => {
     </div>
   );
 };
+
+export default WelcomePage;

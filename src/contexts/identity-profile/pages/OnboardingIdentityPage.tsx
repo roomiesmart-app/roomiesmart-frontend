@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useUser } from '@clerk/clerk-react';
 import { useOnboarding } from '../context/OnboardingContext';
 import { validateIdentityProfile } from '../validators/IdentityProfileValidator';
 import type { IdentityProfileErrors } from '../models/ValidationErrors';
@@ -9,13 +10,19 @@ import { ONBOARDING_ROUTES } from '../../../app/routes/constant';
 import { hasErrors } from '../../../shared/utils/validationHelper';
 
 export default function OnboardingIdentityPage() {
+  const { user } = useUser();
   const { formData, updateFormData } = useOnboarding();
   const navigate = useNavigate();
   const [errors, setErrors] = useState<IdentityProfileErrors>({});
 
   useEffect(() => {
-    console.log("Current Onboarding Data:", formData);
-  }, [formData]);
+    if (user && (!formData.name || !formData.email)) {
+      updateFormData({
+        name: user.fullName || '',
+        email: user.primaryEmailAddress?.emailAddress || '',
+      });
+    }
+  }, [user, formData.name, formData.email, updateFormData]);
 
   const handleContinue = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -34,7 +41,7 @@ export default function OnboardingIdentityPage() {
       <div className="max-w-6xl mx-auto w-full mb-8 mt-4 sm:mt-0">
         <p className="text-sm text-neutral mb-2">Identidad</p>
         <div className="flex justify-between items-center mb-4">
-          <h1 className="text-xl sm:text-2xl font-bold text-secondary">Crea tu perfil base.</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-secondary">Verifica tu perfil institucional.</h1>
         </div>
         <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
           <div className="w-1/4 h-full bg-primary rounded-full transition-all duration-500"></div>
@@ -45,29 +52,20 @@ export default function OnboardingIdentityPage() {
         <section className="bg-white rounded-[40px] p-6 sm:p-10 shadow-xl border border-primary/5">
           <form onSubmit={handleContinue} className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <TextField
-              label="Nombre completo"
+              label="Nombre completo (Sincronizado con UCE)"
               placeholder="Ej. Carlos Mendoza"
               value={formData.name}
-              error={errors.name}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateFormData({ name: e.target.value })}
+              disabled={true}
+              onChange={() => {}}
             />
 
             <TextField
-              label="Correo Institucional"
+              label="Correo Institucional (Verificado por Microsoft)"
               type="email"
               placeholder="usuario@uce.edu.ec"
               value={formData.email}
-              error={errors.email}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateFormData({ email: e.target.value.toLowerCase() })}
-            />
-
-            <TextField
-              label="Contraseña Segura"
-              type="password"
-              placeholder="••••••••"
-              value={formData.password}
-              error={errors.password}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateFormData({ password: e.target.value })}
+              disabled={true}
+              onChange={() => {}}
             />
 
             <TextField
