@@ -1,49 +1,52 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useUser } from '@clerk/clerk-react';
 import { FilterSidebar } from '../components/FilterSidebar';
 import { ProfileCard, type ProfileData } from '../components/ProfileCard';
+import { matchmakingService } from '../services/matchmaking.services';
+
 export const MatchmakingDashboardPage: React.FC = () => {
-  const [mockProfiles] = useState<ProfileData[]>([
-    {
-      id: '1',
-      name: 'Sarah Jenkins',
-      subtitle: 'Séptimo Semestre • Ingeniería en Sistemas',
-      affinityScore: 95,
-      habits: ['Madrugadora', 'No fumadora', 'Silencio tras 10 PM'],
-      bio: 'Busco un espacio tranquilo y organizado para concentrarme en mis finales. Me gusta mantener las áreas comunes impecables.',
-      budget: 180,
-      imageUrl: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=400'
-    },
-    {
-      id: '2',
-      name: 'Michael Chen',
-      subtitle: 'Quinto Semestre • Arquitectura',
-      affinityScore: 88,
-      habits: ['Noctámbulo', 'Acepta Perros', 'Gamer'],
-      bio: 'Suelo hacer maquetas hasta tarde, pero uso auriculares. Tengo un Golden Retriever muy amigable que duerme casi todo el día.',
-      budget: 220,
-      imageUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=400'
-    },
-    {
-      id: '3',
-      name: 'Elena Rodríguez',
-      subtitle: 'Tercer Semestre • Diseño Gráfico',
-      affinityScore: 82,
-      habits: ['Artística', 'Social', 'Le gusta cocinar'],
-      bio: 'Alma creativa buscando un roommate que disfrute de cenas compartidas los fines de semana. Pinto en mi tiempo libre.',
-      budget: 150,
-      imageUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=400'
-    },
-    {
-      id: '4',
-      name: 'David Miller',
-      subtitle: 'Octavo Semestre • Medicina',
-      affinityScore: 75,
-      habits: ['No fumador', 'Estudioso', 'Minimalista'],
-      bio: 'Paso la mayor parte del tiempo en el hospital o estudiando. Busco alguien responsable con los pagos y la limpieza.',
-      budget: 250,
-      imageUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=400'
-    }
-  ]);
+  const { user } = useUser();
+  const [profiles, setProfiles] = useState<ProfileData[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+
+  useEffect(() => {
+    const fetchMatches = async () => {
+      if (!user?.id) return;
+      
+      try {
+        setLoading(true);
+        const data = await matchmakingService.getMatches(user.id);
+        
+        // Log estratégico para verificar la data cruda del backend
+        console.log("Datos crudos recibidos del backend:", data);
+        
+        // Transformamos la respuesta
+        const formattedProfiles: ProfileData[] = data.map((match) => ({
+          id: match.candidate.id,
+          name: match.candidate.fullName,
+          subtitle: match.candidate.roomType,
+          affinityScore: match.compatibilityScore,
+          habits: [
+            match.candidate.habits.isEarlyBird ? 'Madrugador' : 'Noctámbulo',
+            match.candidate.habits.smokingPreference === 'No' ? 'No fumador' : 'Fumador'
+          ],
+          bio: match.aiExplanation,
+          budget: match.candidate.budget.min,
+          imageUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + match.candidate.fullName
+        }));
+        
+        setProfiles(formattedProfiles);
+        console.log("Profiles mapeados listos para renderizar:", formattedProfiles);
+        
+      } catch (error) {
+        console.error("Error al cargar matches:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMatches();
+  }, [user]);
 
   return (
     <div className="min-h-screen bg-white">
@@ -57,7 +60,7 @@ export const MatchmakingDashboardPage: React.FC = () => {
           </nav>
         </div>
         <div className="w-8 h-8 bg-gray-300 rounded-full overflow-hidden">
-          <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Jonathan" alt="Avatar" />
+          <img src={user?.imageUrl || "https://api.dicebear.com/7.x/avataaars/svg?seed=User"} alt="Avatar" />
         </div>
       </header>
 
@@ -68,7 +71,9 @@ export const MatchmakingDashboardPage: React.FC = () => {
           <div className="flex justify-between items-end mb-8">
             <div>
               <h1 className="text-4xl font-extrabold text-gray-900 mb-2">Encuentra tu match ideal</h1>
-              <p className="text-gray-500 text-sm">{mockProfiles.length} roomies potenciales cerca de Universidad Central del Ecuador</p>
+              <p className="text-gray-500 text-sm">
+                {loading ? "Cargando roomies..." : `${profiles.length} roomies potenciales cerca de ti`}
+              </p>
             </div>
             <div className="flex gap-2">
               <button className="border border-gray-200 px-4 py-2 rounded-full text-sm font-medium text-gray-600 flex items-center gap-2 hover:bg-gray-50">
@@ -78,20 +83,14 @@ export const MatchmakingDashboardPage: React.FC = () => {
           </div>
 
           <div className="grid grid-cols-2 gap-6 mb-8">
-            {mockProfiles.map(profile => (
+            {profiles.map(profile => (
               <ProfileCard key={profile.id} profile={profile} />
             ))}
-          </div>
-
-          <div className="text-center">
-            <button className="border-2 border-[#8C3A27] text-[#8C3A27] px-8 py-3 rounded-full text-sm font-bold hover:bg-[#FFF5F0] transition mb-4">
-              Cargar más roomies
-            </button>
-            <p className="text-xs text-gray-400 font-medium">Mostrando 4 de 128 resultados</p>
           </div>
         </section>
       </main>
     </div>
   );
 };
+
 export default MatchmakingDashboardPage;
