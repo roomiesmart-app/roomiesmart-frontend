@@ -2,7 +2,8 @@ name: Build and Deploy Frontend
 
 on:
   push:
-    branches: [ "dev", "main" ]
+    branches: [ "dev", "main" ] # QA removido para que no sea automático
+  workflow_dispatch: # Gatillo para desplegar a QA manualmente
 
 jobs:
   build-and-push:
@@ -17,16 +18,21 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Determine environment tag
+      - name: Determine environment tag and API URL
         id: environment
         run: |
           if [ "${{ github.ref_name }}" == "main" ]; then
             echo "TAG=prod" >> $GITHUB_ENV
+            echo "API_URL=http://roomiesmartprod.programacionwebuce.net" >> $GITHUB_ENV 
+          elif [ "${{ github.ref_name }}" == "qa" ]; then
+            echo "TAG=qa" >> $GITHUB_ENV
+            # ✅ Solo el dominio exacto, sin el /api al final
+            echo "API_URL=http://roomiesmartqa.programacionwebuce.net" >> $GITHUB_ENV
           else
             echo "TAG=dev" >> $GITHUB_ENV
+            echo "API_URL=http://${{ secrets.AWS_HOST }}" >> $GITHUB_ENV
           fi
 
-      # ... (todo lo de arriba queda igual) ...
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
@@ -34,11 +40,12 @@ jobs:
           context: .
           push: true
           tags: paulchapi/roomiesmart-frontend:${{ env.TAG }}
-          # 👇 AQUÍ DISPARAMOS LA VARIABLE AL DOCKERFILE 👇
           build-args: |
-            VITE_API_BASE_URL=http://52.7.189.106:8080
+            VITE_API_BASE_URL=${{ env.API_URL }}
 
-      # DESPLIEGUE A DESARROLLO (Solo si es la rama dev)
+      # =========================================================
+      # DESPLIEGUE A DESARROLLO
+      # =========================================================
       - name: Deploy Frontend to Dev Environment
         if: github.ref_name == 'dev'
         uses: appleboy/ssh-action@v1.0.3
@@ -49,17 +56,34 @@ jobs:
           script: |
             cd ~/roomiesmart-backend
             docker pull paulchapi/roomiesmart-frontend:dev
-            docker compose -f docker-compose.dev.yml up -d frontend
+            docker compose -f docker-compose.dev.yml up -d --remove-orphans frontend
 
-      # DESPLIEGUE A PRODUCCIÓN (Solo si es la rama main)
+      # =========================================================
+      # DESPLIEGUE A PRODUCCIÓN
+      # =========================================================
       - name: Deploy Frontend to Production Environment
         if: github.ref_name == 'main'
         uses: appleboy/ssh-action@v1.0.3
         with:
-          host: ${{ secrets.AWS_HOST }}
+          host: ${{ secrets.AWS_HOST_PROD }}
           username: ubuntu
-          key: ${{ secrets.AWS_SSH_KEY }} # <- Corregí el guion bajo extra que tenías aquí
+          key: ${{ secrets.AWS_SSH_KEY }}
           script: |
             cd ~/roomiesmart-production
             docker pull paulchapi/roomiesmart-frontend:prod
-            docker compose -f docker-compose.prod.yml up -d frontend
+            docker compose -f docker-compose.prod.yml up -d --remove-orphans frontend
+
+      # =========================================================
+      # DESPLIEGUE A QA
+      # =========================================================
+      - name: Deploy Frontend to QA Environment
+        if: github.ref_name == 'qa'
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.AWS_HOST_QA }}
+          username: ubuntu
+          key: ${{ secrets.AWS_SSH_KEY }}
+          script: |
+            cd ~/roomiesmart-qa
+            docker pull paulchapi/roomiesmart-frontend:qa
+            docker compose -f docker-compose.qa.yml up -d --remove-orphans frontend

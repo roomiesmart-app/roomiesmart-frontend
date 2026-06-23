@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useUser } from '@clerk/clerk-react';
 import { useOnboarding } from '../context/OnboardingContext';
@@ -19,7 +19,7 @@ export default function FinancialExpectationsOnboarding() {
   const { mutate: register, isPending } = useRegister();
 
   const sharedItemsOptions = [
-    'Nevera', 'Cafetera', 'Televisión', 'Productos limpieza', 
+    'Nevera', 'Cafetera', 'Televisión', 'Productos limpieza',
     'Lavadora', 'Microondas', 'Vajilla', 'Consola de juegos'
   ];
 
@@ -50,7 +50,7 @@ export default function FinancialExpectationsOnboarding() {
   const handleFinish = () => {
     setBackendError(null);
     const validationErrors = validateFinancial(financial);
-    
+
     if (hasErrors(validationErrors)) {
       setErrors(validationErrors);
       return;
@@ -131,14 +131,14 @@ export default function FinancialExpectationsOnboarding() {
         <div className="space-y-8">
           <section className="bg-white p-8 rounded-[32px] shadow-sm border border-gray-100">
             <h2 className="font-bold mb-6">Presupuesto Mensual ($150 - $300)</h2>
-            <input 
-              type="range" 
-              min="150" 
-              max="300" 
-              step="10" 
-              value={financial.budgetRange.max} 
-              onChange={handleBudgetChange} 
-              className="w-full h-2 bg-gray-200 rounded-lg accent-[#A3513D]" 
+            <input
+              type="range"
+              min="150"
+              max="300"
+              step="10"
+              value={financial.budgetRange.max}
+              onChange={handleBudgetChange}
+              className="w-full h-2 bg-gray-200 rounded-lg accent-[#A3513D]"
             />
             <div className="flex justify-between mt-2 font-bold text-[#A3513D]">
               <span>$150</span>
@@ -150,9 +150,9 @@ export default function FinancialExpectationsOnboarding() {
           <section className="bg-white p-8 rounded-[32px] shadow-sm border border-gray-100">
             <h2 className="font-bold mb-6">Gestión de Gastos</h2>
             {expenseManagementOptions.map((item) => (
-              <button 
-                key={item.title} 
-                onClick={() => updateFormData({ financial: { ...financial, expenseManagement: item.title } })} 
+              <button
+                key={item.title}
+                onClick={() => updateFormData({ financial: { ...financial, expenseManagement: item.title } })}
                 className={`w-full p-4 border rounded-2xl mb-3 text-left ${financial.expenseManagement === item.title ? 'border-[#A3513D] bg-[#FFF5F3]' : 'border-gray-100'}`}
               >
                 <p className="font-bold">{item.title}</p>
@@ -162,9 +162,9 @@ export default function FinancialExpectationsOnboarding() {
             <h3 className="font-bold mt-6 mb-4">Objetos compartidos</h3>
             <div className="flex flex-wrap gap-2">
               {sharedItemsOptions.map((obj) => (
-                <button 
-                  key={obj} 
-                  onClick={() => toggleSharedItem(obj)} 
+                <button
+                  key={obj}
+                  onClick={() => toggleSharedItem(obj)}
                   className={`px-4 py-2 rounded-full border ${financial.sharedItems.includes(obj) ? 'bg-[#A3513D] text-white' : 'bg-white border-gray-200'}`}
                 >
                   {obj}
@@ -180,9 +180,9 @@ export default function FinancialExpectationsOnboarding() {
             <h2 className="font-bold mb-6">Preferencia de Habitación</h2>
             <div className="grid grid-cols-2 gap-4">
               {['Privada', 'Compartida'].map((type) => (
-                <button 
-                  key={type} 
-                  onClick={() => updateFormData({ financial: { ...financial, roomType: type } })} 
+                <button
+                  key={type}
+                  onClick={() => updateFormData({ financial: { ...financial, roomType: type } })}
                   className={`p-6 rounded-2xl border ${financial.roomType === type ? 'border-[#A3513D] bg-[#FFF5F3]' : 'border-gray-100'}`}
                 >
                   <p className="font-bold">{type}</p>
@@ -212,8 +212,8 @@ export default function FinancialExpectationsOnboarding() {
           {hasErrors(errors) && (
             <span className="text-red-500 text-xs font-bold mb-2 mr-2">⚠️ {Object.values(errors)[0]}</span>
           )}
-          <button 
-            onClick={handleFinish} 
+          <button
+            onClick={handleFinish}
             disabled={isPending}
             className="bg-[#A3513D] text-white px-10 py-3 rounded-full font-bold shadow-lg disabled:opacity-50"
           >
