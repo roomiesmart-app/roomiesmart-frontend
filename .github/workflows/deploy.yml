@@ -27,7 +27,7 @@ jobs:
           elif [ "${{ github.ref_name }}" == "qa" ]; then
             echo "TAG=qa" >> $GITHUB_ENV
             # ✅ Solo el dominio exacto, sin el /api al final
-            echo "API_URL=http://roomiesmartqa.programacionwebuce.net" >> $GITHUB_ENV
+            echo "API_URL=https://qa.roomiesmart.lat" >> $GITHUB_ENV
           else
             echo "TAG=dev" >> $GITHUB_ENV
             echo "API_URL=http://${{ secrets.AWS_HOST }}" >> $GITHUB_ENV
