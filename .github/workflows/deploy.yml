@@ -42,7 +42,7 @@ jobs:
           tags: paulchapi/roomiesmart-frontend:${{ env.TAG }}
           build-args: |
             VITE_API_BASE_URL=${{ env.API_URL }}
-
+            VITE_AUTH_REDIRECT_URI=${{ env.API_URL }}
       # =========================================================
       # DESPLIEGUE A DESARROLLO
       # =========================================================
