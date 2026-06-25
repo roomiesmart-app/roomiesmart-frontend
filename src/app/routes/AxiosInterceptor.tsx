@@ -1,9 +1,9 @@
 import { useEffect, type ReactNode } from 'react';
-import { useAuth } from '@clerk/clerk-react';
+import { useKindeAuth } from '@kinde-oss/kinde-auth-react';
 import api from '../../contexts/identity-profile/services/api';
 
 export const AxiosInterceptor = ({ children }: { children: ReactNode }) => {
-  const { getToken } = useAuth();
+  const { getToken } = useKindeAuth();
 
   useEffect(() => {
     const interceptor = api.interceptors.request.use(

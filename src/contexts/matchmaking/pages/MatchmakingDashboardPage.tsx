@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { useUser } from '@clerk/clerk-react';
+import { useKindeAuth } from '@kinde-oss/kinde-auth-react';
 import { FilterSidebar } from '../components/FilterSidebar';
 import { ProfileCard, type ProfileData } from '../components/ProfileCard';
 import { matchmakingService } from '../services/matchmaking.services';
 
 export const MatchmakingDashboardPage: React.FC = () => {
-  const { user } = useUser();
+  const { user } = useKindeAuth();
   const [profiles, setProfiles] = useState<ProfileData[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
@@ -17,10 +17,8 @@ export const MatchmakingDashboardPage: React.FC = () => {
         setLoading(true);
         const data = await matchmakingService.getMatches(user.id);
         
-        // Log estratégico para verificar la data cruda del backend
         console.log("Datos crudos recibidos del backend:", data);
         
-        // Transformamos la respuesta
         const formattedProfiles: ProfileData[] = data.map((match) => ({
           id: match.candidate.id,
           name: match.candidate.fullName,
@@ -60,7 +58,7 @@ export const MatchmakingDashboardPage: React.FC = () => {
           </nav>
         </div>
         <div className="w-8 h-8 bg-gray-300 rounded-full overflow-hidden">
-          <img src={user?.imageUrl || "https://api.dicebear.com/7.x/avataaars/svg?seed=User"} alt="Avatar" />
+          <img src={user?.picture || "https://api.dicebear.com/7.x/avataaars/svg?seed=User"} alt="Avatar" />
         </div>
       </header>
 

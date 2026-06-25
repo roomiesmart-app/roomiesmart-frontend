@@ -1,17 +1,15 @@
-import { useSignIn } from "@clerk/clerk-react";
+import { useKindeAuth } from "@kinde-oss/kinde-auth-react";
 import logo from "../../../assets/RoomieSmart.png";
 
 export const Login = () => {
-    const { signIn, isLoaded } = useSignIn();
+    const { login, isLoading } = useKindeAuth();
 
     const handleSignInWithMicrosoft = async () => {
-        if (!isLoaded) return;
+        if (isLoading) return;
 
         try {
-            await signIn.authenticateWithRedirect({
-                strategy: "oauth_microsoft",
-                redirectUrl: "/sso-callback",
-                redirectUrlComplete: "/dispatcher",
+            await login({
+                connectionId: "conn_microsoft",
             });
         } catch (err) {
             console.error(err);

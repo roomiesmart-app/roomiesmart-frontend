@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useUser } from '@clerk/clerk-react';
+import { useKindeAuth } from '@kinde-oss/kinde-auth-react';
 import { useOnboarding } from '../context/OnboardingContext';
 import { ONBOARDING_ROUTES } from '../../../app/routes/constant';
 import { validateFinancial } from '../validators/FinancialValidator';
@@ -9,7 +9,7 @@ import { hasErrors } from '../../../shared/utils/validationHelper';
 import { useRegister } from '../../../hooks/useOnboardingMutation';
 
 export default function FinancialExpectationsOnboarding() {
-  const { user } = useUser();
+  const { user } = useKindeAuth();
   const { formData, updateFormData } = useOnboarding();
   const { financial } = formData;
   const navigate = useNavigate();
@@ -94,12 +94,7 @@ export default function FinancialExpectationsOnboarding() {
     };
 
     register(formattedData, {
-      onSuccess: async () => {
-        if (user) {
-          await user.update({
-            unsafeMetadata: { onboardingCompleted: true }
-          });
-        }
+      onSuccess: () => {
         navigate('/dashboard', { replace: true });
       },
       onError: (error: any) => {

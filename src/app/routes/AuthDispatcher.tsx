@@ -1,16 +1,16 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useUser } from '@clerk/clerk-react';
+import { useKindeAuth } from '@kinde-oss/kinde-auth-react';
 import api from '../../contexts/identity-profile/services/api';
 
 export const AuthDispatcher = () => {
-  const { user, isLoaded } = useUser();
+  const { user, isLoading } = useKindeAuth();
   const navigate = useNavigate();
   const [status, setStatus] = useState<'checking' | 'error'>('checking');
 
   useEffect(() => {
     const checkUserStatus = async () => {
-      if (!isLoaded) return;
+      if (isLoading) return;
       
       if (!user) {
         navigate('/login', { replace: true });
@@ -18,10 +18,10 @@ export const AuthDispatcher = () => {
       }
 
       try {
-        const email = user.primaryEmailAddress?.emailAddress;
+        const email = user.email;
         
-        console.log("¡Usuario atrapado por Clerk, bb! 🚀");
-        console.log("Objeto completo de Microsoft:", user);
+        console.log("¡Usuario atrapado por Kinde, bb! 🚀");
+        console.log("Objeto completo institucional:", user);
         console.log("Correo enviado al backend:", email);
 
         const response = await api.get(`/api/v1/identity/check-status/${email}`);
@@ -37,7 +37,7 @@ export const AuthDispatcher = () => {
     };
 
     checkUserStatus();
-  }, [isLoaded, user, navigate]);
+  }, [isLoading, user, navigate]);
 
   if (status === 'error') {
     return (
