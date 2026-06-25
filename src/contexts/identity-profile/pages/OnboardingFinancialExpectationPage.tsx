@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useKindeAuth } from '@kinde-oss/kinde-auth-react';
 import { useOnboarding } from '../context/OnboardingContext';
 import { ONBOARDING_ROUTES } from '../../../app/routes/constant';
 import { validateFinancial } from '../validators/FinancialValidator';
@@ -9,7 +8,6 @@ import { hasErrors } from '../../../shared/utils/validationHelper';
 import { useRegister } from '../../../hooks/useOnboardingMutation';
 
 export default function FinancialExpectationsOnboarding() {
-  const { user } = useKindeAuth();
   const { formData, updateFormData } = useOnboarding();
   const { financial } = formData;
   const navigate = useNavigate();
