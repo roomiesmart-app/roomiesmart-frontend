@@ -19,6 +19,11 @@ export const AuthDispatcher = () => {
 
       try {
         const email = user.primaryEmailAddress?.emailAddress;
+        
+        console.log("¡Usuario atrapado por Clerk, bb! 🚀");
+        console.log("Objeto completo de Microsoft:", user);
+        console.log("Correo enviado al backend:", email);
+
         const response = await api.get(`/api/v1/identity/check-status/${email}`);
         
         if (response.data.exists) {
@@ -49,5 +54,9 @@ export const AuthDispatcher = () => {
     );
   }
 
-  return null;
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-[#f8f9fa]">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-[#8C3A27]"></div>
+    </div>
+  );
 };
