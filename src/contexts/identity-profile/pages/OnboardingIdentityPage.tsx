@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useUser } from '@clerk/clerk-react';
+import { useKindeAuth } from '@kinde-oss/kinde-auth-react';
 import { useOnboarding } from '../context/OnboardingContext';
 import { validateIdentityProfile } from '../validators/IdentityProfileValidator';
 import type { IdentityProfileErrors } from '../models/ValidationErrors';
@@ -10,7 +10,7 @@ import { ONBOARDING_ROUTES } from '../../../app/routes/constant';
 import { hasErrors } from '../../../shared/utils/validationHelper';
 
 export default function OnboardingIdentityPage() {
-  const { user } = useUser();
+  const { user } = useKindeAuth();
   const { formData, updateFormData } = useOnboarding();
   const navigate = useNavigate();
   const [errors, setErrors] = useState<IdentityProfileErrors>({});
@@ -18,8 +18,8 @@ export default function OnboardingIdentityPage() {
   useEffect(() => {
     if (user && (!formData.name || !formData.email)) {
       updateFormData({
-        name: user.fullName || '',
-        email: user.primaryEmailAddress?.emailAddress || '',
+        name: `${user.givenName || ''} ${user.familyName || ''}`.trim(),
+        email: user.email || '',
       });
     }
   }, [user, formData.name, formData.email, updateFormData]);

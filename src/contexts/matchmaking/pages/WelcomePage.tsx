@@ -1,13 +1,13 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useUser } from '@clerk/clerk-react';
+import { useKindeAuth } from '@kinde-oss/kinde-auth-react';
 
 export const WelcomePage: React.FC = () => {
   const navigate = useNavigate();
-  const { user } = useUser();
+  const { user } = useKindeAuth();
 
-  const firstName = user?.firstName || "Roomie";
-  const lastName = user?.lastName || "";
+  const firstName = user?.givenName || "Roomie";
+  const lastName = user?.familyName || "";
 
   const metrics = [
     { label: "MATCHES", value: "12" },
@@ -32,7 +32,7 @@ export const WelcomePage: React.FC = () => {
           </div>
           <div className="w-10 h-10 bg-gray-300 rounded-full overflow-hidden flex items-center justify-center">
             <img 
-              src={user?.imageUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${firstName}`} 
+              src={user?.picture || `https://api.dicebear.com/7.x/avataaars/svg?seed=${firstName}`} 
               alt="Avatar" 
               className="w-full h-full object-cover"
             />

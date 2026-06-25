@@ -1,27 +1,28 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { useAuth, AuthenticateWithRedirectCallback } from "@clerk/clerk-react";import { OnboardingProvider } from "../../contexts/identity-profile/context/OnboardingContext";
+import { useKindeAuth } from "@kinde-oss/kinde-auth-react";
+import { OnboardingProvider } from "../../contexts/identity-profile/context/OnboardingContext";
 import OnboardingLayout from "../../contexts/identity-profile/layouts/OnboardingLayout";
 import Login from "../../contexts/identity-profile/pages/Login";
 import OnboardingIdentityPage from "../../contexts/identity-profile/pages/OnboardingIdentityPage";
 import OnboardingLifestylePage from "../../contexts/identity-profile/pages/OnboardingLifestylePage"; 
 import OnboardingSocialProfilePage from "../../contexts/identity-profile/pages/OnboardingSocialProfilePage"; 
-import OnboardingFinancialExpectationPage from "../../contexts/identity-profile/pages/OnboardingFinancialExpectationPage"
-import {WelcomePage} from "../../contexts/matchmaking/pages/WelcomePage"
-import { MatchmakingDashboardPage } from "../../contexts/matchmaking/pages/MatchmakingDashboardPage"
+import OnboardingFinancialExpectationPage from "../../contexts/identity-profile/pages/OnboardingFinancialExpectationPage";
+import { WelcomePage } from "../../contexts/matchmaking/pages/WelcomePage";
+import { MatchmakingDashboardPage } from "../../contexts/matchmaking/pages/MatchmakingDashboardPage";
 import { AuthDispatcher } from "./AuthDispatcher";
 import { AxiosInterceptor } from "./AxiosInterceptor";
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { isLoaded, isSignedIn } = useAuth();
-  if (!isLoaded) return null;
-  if (!isSignedIn) return <Navigate to="/login" replace />;
+  const { isLoading, isAuthenticated } = useKindeAuth();
+  if (isLoading) return null;
+  if (!isAuthenticated) return <Navigate to="/login" replace />;
   return <>{children}</>;
 }
 
 function PublicRoute({ children }: { children: React.ReactNode }) {
-  const { isLoaded, isSignedIn } = useAuth();
-  if (!isLoaded) return null;
-  if (isSignedIn) return <Navigate to="/dispatcher" replace />;
+  const { isLoading, isAuthenticated } = useKindeAuth();
+  if (isLoading) return null;
+  if (isAuthenticated) return <Navigate to="/dispatcher" replace />;
   return <>{children}</>;
 }
 
@@ -32,17 +33,6 @@ function App() {
         <Routes>
           <Route path="/" element={<Navigate to="/dispatcher" replace />} />
           <Route path="/dispatcher" element={<ProtectedRoute><AuthDispatcher /></ProtectedRoute>} />
-          
-          <Route 
-            path="/sso-callback" 
-            element={
-              <AuthenticateWithRedirectCallback 
-                signInForceRedirectUrl="/dispatcher" 
-                signUpForceRedirectUrl="/dispatcher" 
-              />
-            } 
-          />
-          
           <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
 
           <Route 
