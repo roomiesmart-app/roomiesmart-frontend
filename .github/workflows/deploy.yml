@@ -23,9 +23,10 @@ jobs:
         run: |
           if [ "${{ github.ref_name }}" == "main" ]; then
             echo "TAG=prod" >> $GITHUB_ENV
-            echo "API_URL=https://prod.roomiesmart.lat" >> $GITHUB_ENV 
+            echo "API_URL=https://prod.roomiesmart.lat" >> $GITHUB_ENV
           elif [ "${{ github.ref_name }}" == "qa" ]; then
             echo "TAG=qa" >> $GITHUB_ENV
+            # Solo el dominio exacto, sin el /api al final
             echo "API_URL=https://qa.roomiesmart.lat" >> $GITHUB_ENV
           else
             echo "TAG=dev" >> $GITHUB_ENV
