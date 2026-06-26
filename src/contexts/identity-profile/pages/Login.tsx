@@ -9,7 +9,7 @@ export const Login = () => {
 
         try {
             await login({
-                connectionId: "conn_microsoft",
+                connectionId: "conn_019effc8ade0c6776f395e6ad86557f6",
             });
         } catch (err) {
             console.error(err);
@@ -32,16 +32,16 @@ export const Login = () => {
                 </div>
 
                 <div className="space-y-8">
-                    <button 
+                    <button
                         onClick={handleSignInWithMicrosoft}
                         className="group relative w-full flex justify-center py-4 px-4 border border-transparent text-sm font-bold rounded-2xl text-white bg-secondary hover:bg-secondary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-secondary transition-all shadow-xl shadow-secondary/20 hover:shadow-secondary/40 hover:-translate-y-1"
                     >
                         <div className="relative flex items-center gap-3">
                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 23 23">
-                                <path fill="#f3f3f3" d="M0 0h11v11H0z"/>
-                                <path fill="#f3f3f3" d="M12 0h11v11H12z"/>
-                                <path fill="#f3f3f3" d="M0 12h11v11H0z"/>
-                                <path fill="#f3f3f3" d="M12 12h11v11H12z"/>
+                                <path fill="#f3f3f3" d="M0 0h11v11H0z" />
+                                <path fill="#f3f3f3" d="M12 0h11v11H12z" />
+                                <path fill="#f3f3f3" d="M0 12h11v11H0z" />
+                                <path fill="#f3f3f3" d="M12 12h11v11H12z" />
                             </svg>
                             <span className="tracking-wide">Ingresar con tu correo UCE</span>
                         </div>
@@ -49,7 +49,7 @@ export const Login = () => {
 
                     <div className="text-center">
                         <p className="text-xs text-neutral/70 font-medium">
-                            Acceso exclusivo para estudiantes de <br/>Universidad Central del Ecuador
+                            Acceso exclusivo para estudiantes de <br />Universidad Central del Ecuador
                         </p>
                     </div>
                 </div>
