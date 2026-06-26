@@ -1,12 +1,13 @@
 export interface OnboardingProfile {
   name: string;
   email: string;
-  password: string;
+  password?: string;
   age: number;
   gender: string;
   career: string;
   semester: string;
   birthCity: string;
+  budget?: number;
   lifestyle: {
     cleaningFrequency: string;
     isEarlyBird: boolean;
