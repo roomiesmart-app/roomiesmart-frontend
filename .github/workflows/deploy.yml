@@ -2,8 +2,8 @@ name: Build and Deploy Frontend
 
 on:
   push:
-    branches: [ "dev", "main" ] # QA removido para que no sea automático
-  workflow_dispatch: # Gatillo para desplegar a QA manualmente
+    branches: [ "dev", "main", "qa" ]
+  workflow_dispatch:
 
 jobs:
   build-and-push:
@@ -23,7 +23,7 @@ jobs:
         run: |
           if [ "${{ github.ref_name }}" == "main" ]; then
             echo "TAG=prod" >> $GITHUB_ENV
-            echo "API_URL=https://prod.roomiesmart.lat" >> $GITHUB_ENV 
+            echo "API_URL=https://prod.roomiesmart.lat" >> $GITHUB_ENV
           elif [ "${{ github.ref_name }}" == "qa" ]; then
             echo "TAG=qa" >> $GITHUB_ENV
             echo "API_URL=https://qa.roomiesmart.lat" >> $GITHUB_ENV
@@ -43,7 +43,7 @@ jobs:
             VITE_KINDE_CLIENT_ID=${{ secrets.VITE_KINDE_CLIENT_ID }}
             VITE_KINDE_ISSUER_URL=https://roomiesmart.kinde.com
             VITE_KINDE_SITE_URL=${{ env.API_URL }}
-            VITE_KINDE_POST_LOGIN_REDIRECT_URL=${{ env.API_URL }}/dashboard
+            VITE_KINDE_POST_LOGIN_REDIRECT_URL=${{ env.API_URL }}/dispatcher
             VITE_KINDE_POST_LOGOUT_REDIRECT_URL=${{ env.API_URL }}
 
       # =========================================================

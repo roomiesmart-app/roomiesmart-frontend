@@ -11,11 +11,11 @@ RUN npm install
 # Copiar el código fuente
 COPY . .
 
-# 👇 INYECCIÓN DE VARIABLES BASE (Mantenemos la que arregló el backend) 👇
+# 👇 INYECCIÓN DE VARIABLES BASE 👇
 ARG VITE_API_BASE_URL
 ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
 
-# 👇 INYECCIÓN DE VARIABLES DE KINDE (Nuevo flujo de Auth) 👇
+# 👇 INYECCIÓN DE VARIABLES DE KINDE 👇
 ARG VITE_KINDE_CLIENT_ID
 ENV VITE_KINDE_CLIENT_ID=$VITE_KINDE_CLIENT_ID
 
@@ -31,7 +31,7 @@ ENV VITE_KINDE_POST_LOGIN_REDIRECT_URL=$VITE_KINDE_POST_LOGIN_REDIRECT_URL
 ARG VITE_KINDE_POST_LOGOUT_REDIRECT_URL
 ENV VITE_KINDE_POST_LOGOUT_REDIRECT_URL=$VITE_KINDE_POST_LOGOUT_REDIRECT_URL
 
-# Compilar el proyecto quemando las variables en los archivos estáticos
+# Compilar el proyecto
 RUN npm run build
 
 # ==========================================

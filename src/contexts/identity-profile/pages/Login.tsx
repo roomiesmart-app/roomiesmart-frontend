@@ -49,7 +49,7 @@ export const Login = () => {
 
                     <div className="text-center">
                         <p className="text-xs text-neutral/70 font-medium">
-                            Acceso exclusivo para estudiantes de la<br/>Universidad Central del Ecuador
+                            Acceso exclusivo para estudiantes de <br/>Universidad Central del Ecuador
                         </p>
                     </div>
                 </div>
