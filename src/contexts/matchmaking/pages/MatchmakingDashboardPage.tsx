@@ -3,92 +3,105 @@ import { useKindeAuth } from '@kinde-oss/kinde-auth-react';
 import { FilterSidebar } from '../components/FilterSidebar';
 import { ProfileCard, type ProfileData } from '../components/ProfileCard';
 import { matchmakingService } from '../services/matchmaking.services';
+import type { MatchmakingFilters } from '../types/matchmaking.types';
 
 export const MatchmakingDashboardPage: React.FC = () => {
   const { user } = useKindeAuth();
-  const [profiles, setProfiles] = useState<ProfileData[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [naturalProfiles, setNaturalProfiles] = useState<ProfileData[]>([]);
+  const [filteredProfiles, setFilteredProfiles] = useState<ProfileData[]>([]);
+  const [loadingNatural, setLoadingNatural] = useState<boolean>(true);
+  const [loadingFiltered, setLoadingFiltered] = useState<boolean>(false);
+  const [hasSearched, setHasSearched] = useState<boolean>(false);
+  const [currentFilters, setCurrentFilters] = useState<MatchmakingFilters>({});
+
+  const formatProfiles = (data: any[]): ProfileData[] => {
+    if (!Array.isArray(data)) return [];
+
+    return data.map((match: any) => {
+      const c = match?.candidate;
+      return {
+        id: c?.id || Math.random().toString(),
+        name: c?.fullName || 'Estudiante UCE',
+        subtitle: c?.roomType || 'Privada',
+        affinityScore: Number(match?.compatibilityScore ?? 50),
+        habits: [
+          c?.habits?.isEarlyBird ? 'Madrugador' : 'Noctámbulo',
+          c?.habits?.smokingPreference || 'No fumo'
+        ],
+        bio: match?.aiExplanation || 'Afinidad calculada por IA',
+        budget: c?.budget?.min || 150,
+        imageUrl: `https://api.dicebear.com/7.x/avataaars/svg?seed=${c?.fullName || 'default'}`
+      };
+    });
+  };
+
+  const loadNaturalMatches = async () => {
+    if (!user?.email && !user?.id) return;
+    setLoadingNatural(true);
+    try {
+      const authIdentifier = user?.email || user?.id || "";
+      const data = await matchmakingService.getMatches(authIdentifier, {});
+      setNaturalProfiles(formatProfiles(data));
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoadingNatural(false);
+    }
+  };
+
+  const handleManualSearch = async () => {
+    if (!user?.email && !user?.id) return;
+    setLoadingFiltered(true);
+    setHasSearched(true);
+    try {
+      const authIdentifier = user?.email || user?.id || "";
+      const data = await matchmakingService.getMatches(authIdentifier, currentFilters);
+      setFilteredProfiles(formatProfiles(data));
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoadingFiltered(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchMatches = async () => {
-      if (!user?.id) return;
-      
-      try {
-        setLoading(true);
-        const data = await matchmakingService.getMatches(user.id);
-        
-        console.log("Datos crudos recibidos del backend:", data);
-        
-        const formattedProfiles: ProfileData[] = data.map((match) => ({
-          id: match.candidate.id,
-          name: match.candidate.fullName,
-          subtitle: match.candidate.roomType,
-          affinityScore: match.compatibilityScore,
-          habits: [
-            match.candidate.habits.isEarlyBird ? 'Madrugador' : 'Noctámbulo',
-            match.candidate.habits.smokingPreference === 'No' ? 'No fumador' : 'Fumador'
-          ],
-          bio: match.aiExplanation,
-          budget: match.candidate.budget.min,
-          imageUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + match.candidate.fullName
-        }));
-        
-        setProfiles(formattedProfiles);
-        console.log("Profiles mapeados listos para renderizar:", formattedProfiles);
-        
-      } catch (error) {
-        console.error("Error al cargar matches:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchMatches();
-  }, [user]);
+    if (user?.email || user?.id) loadNaturalMatches();
+  }, [user?.email, user?.id]);
 
   return (
-    <div className="min-h-screen bg-white">
-      <header className="border-b border-gray-100 px-8 py-4 flex justify-between items-center">
-        <div className="flex items-center gap-8">
-          <div className="font-bold text-xl text-[#8C3A27]">RoomieSmart</div>
-          <nav className="flex gap-6 text-sm font-medium text-gray-600">
-            <span className="text-[#8C3A27]">Buscar Roomies</span>
-            <span className="opacity-50 cursor-not-allowed">Publicar Espacio</span>
-            <span className="opacity-50 cursor-not-allowed">Finanzas</span>
-          </nav>
-        </div>
-        <div className="w-8 h-8 bg-gray-300 rounded-full overflow-hidden">
-          <img src={user?.picture || "https://api.dicebear.com/7.x/avataaars/svg?seed=User"} alt="Avatar" />
-        </div>
-      </header>
+    <main className="max-w-7xl mx-auto px-8 py-8 flex flex-col md:flex-row gap-12">
+      <aside className="w-full md:w-72 border-r border-gray-200 pr-8">
+        <FilterSidebar onFiltersChange={setCurrentFilters} />
+        <button onClick={handleManualSearch} className="w-full mt-6 bg-[#8C3A27] text-white py-3 rounded-lg font-bold hover:bg-[#7a3222] transition">
+          Buscar Roomies
+        </button>
+      </aside>
 
-      <main className="max-w-7xl mx-auto px-8 py-8 flex gap-12">
-        <FilterSidebar />
-        
-        <section className="flex-1">
-          <div className="flex justify-between items-end mb-8">
-            <div>
-              <h1 className="text-4xl font-extrabold text-gray-900 mb-2">Encuentra tu match ideal</h1>
-              <p className="text-gray-500 text-sm">
-                {loading ? "Cargando roomies..." : `${profiles.length} roomies potenciales cerca de ti`}
-              </p>
+      <section className="flex-1 space-y-16">
+        <div>
+          <div className="mb-6">
+            <h1 className="text-3xl font-extrabold text-gray-900">Matchmaking Ideal</h1>
+            <p className="text-sm text-gray-500">Afinidad calculada por IA basada 100% en tu test de registro</p>
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {loadingNatural ? <p>Analizando personalidades con IA...</p> : naturalProfiles.map(p => <ProfileCard key={`nat-${p.id}`} profile={p} />)}
+          </div>
+        </div>
+
+        {hasSearched && (
+          <div className="pt-8 border-t-2 border-dashed border-gray-200">
+            <div className="mb-6">
+              <h2 className="text-2xl font-bold text-[#8C3A27]">Búsqueda por Filtros</h2>
+              <p className="text-sm text-gray-500">Candidatos que encajan estrictamente con tus parámetros manuales</p>
             </div>
-            <div className="flex gap-2">
-              <button className="border border-gray-200 px-4 py-2 rounded-full text-sm font-medium text-gray-600 flex items-center gap-2 hover:bg-gray-50">
-                ≡ Ordenar: Compatibilidad
-              </button>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {loadingFiltered ? <p>Filtrando...</p> : filteredProfiles.length === 0 ? (
+                <p className="text-gray-400 font-medium">Ningún roomie cumple con el 100% de esos filtros.</p>
+              ) : filteredProfiles.map(p => <ProfileCard key={`filt-${p.id}`} profile={p} />)}
             </div>
           </div>
-
-          <div className="grid grid-cols-2 gap-6 mb-8">
-            {profiles.map(profile => (
-              <ProfileCard key={profile.id} profile={profile} />
-            ))}
-          </div>
-        </section>
-      </main>
-    </div>
+        )}
+      </section>
+    </main>
   );
 };
-
-export default MatchmakingDashboardPage;

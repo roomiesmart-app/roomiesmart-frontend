@@ -1,9 +1,13 @@
 import api from '../../../contexts/identity-profile/services/api';
-import type{ MatchmakingResponse } from '../types/matchmaking.types';
+import type { MatchmakingFilters } from '../types/matchmaking.types';
 
 export const matchmakingService = {
-  getMatches: async (userId: string): Promise<MatchmakingResponse[]> => {
-    const { data } = await api.get(`/api/v1/identity/matchmaking-profiles?userId=${userId}`);
+  // Le pasamos el objeto user completo de Kinde o el email
+  getMatches: async (userIdOrEmail: string, filters: MatchmakingFilters = {}) => {
+    const { data } = await api.post(`/api/v1/identity/matchmaking-profiles`, {
+      userId: userIdOrEmail, 
+      filters
+    });
     return data;
   }
 };
