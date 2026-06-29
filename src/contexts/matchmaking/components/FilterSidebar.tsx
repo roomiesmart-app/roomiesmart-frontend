@@ -15,7 +15,6 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({ onFiltersChange })
   const hobbiesOptions = ['Cocina', 'Gaming', 'Ejercicio', 'Fotografía', 'Lectura', 'Viajar', 'Yoga', 'Arte', 'Senderismo'];
   const musicOptions = ['Rap', 'Rock', 'Electronic', 'Reggaeton', 'Indie', 'Salsa', 'K-Pop', 'Jazz', 'Clásica'];
 
-  // CORRECCIÓN: Se eliminó el parámetro 'list' que no se usaba
   const toggleSelection = (item: string, setter: React.Dispatch<React.SetStateAction<string[]>>) => {
     setter(prev => prev.includes(item) ? prev.filter(i => i !== item) : [...prev, item]);
   };
@@ -60,7 +59,6 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({ onFiltersChange })
         <label className="text-xs font-bold uppercase text-gray-500">Hobbies</label>
         <div className="flex flex-wrap gap-1">
           {hobbiesOptions.map(h => (
-            {/* CORRECCIÓN: Ahora solo envía 'h' y el 'setHobbies' */}
             <button key={h} onClick={() => toggleSelection(h, setHobbies)} className={`px-2 py-1 rounded text-[10px] ${hobbies.includes(h) ? 'bg-[#8C3A27] text-white' : 'bg-gray-100'}`}>{h}</button>
           ))}
         </div>
@@ -69,11 +67,10 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({ onFiltersChange })
         <label className="text-xs font-bold uppercase text-gray-500">Géneros Musicales</label>
         <div className="flex flex-wrap gap-1">
           {musicOptions.map(m => (
-            {/* CORRECCIÓN: Ahora solo envía 'm' y el 'setMusicGenres' */}
             <button key={m} onClick={() => toggleSelection(m, setMusicGenres)} className={`px-2 py-1 rounded text-[10px] ${musicGenres.includes(m) ? 'bg-[#8C3A27] text-white' : 'bg-gray-100'}`}>{m}</button>
           ))}
         </div>
-      </div >
-    </aside >
+      </div>
+    </aside>
   );
 };
