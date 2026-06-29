@@ -35,7 +35,7 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({ onFiltersChange })
     <aside className="w-full space-y-6 bg-white p-6 border border-gray-100 rounded-2xl shadow-sm">
       <div>
         <label className="text-xs font-bold uppercase text-gray-500">Presupuesto: ${budget}</label>
-        <input type="range" min="100" max="500" step="50" value={budget} onChange={(e) => setBudget(Number(e.target.value))} className="w-full accent-[#8C3A27]" />
+        <input type="range" min="150" max="300" step="10" value={budget} onChange={(e) => setBudget(Number(e.target.value))} className="w-full accent-[#8C3A27]" />
       </div>
       <div>
         <label className="text-xs font-bold uppercase text-gray-500">Tabaco / Vape</label>
