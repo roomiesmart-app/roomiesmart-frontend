@@ -14,23 +14,28 @@ export const MatchmakingDashboardPage: React.FC = () => {
   const [hasSearched, setHasSearched] = useState<boolean>(false);
   const [currentFilters, setCurrentFilters] = useState<MatchmakingFilters>({});
 
-  const formatProfiles = (data: any[]): ProfileData[] => {
+ const formatProfiles = (data: any[]): ProfileData[] => {
     if (!Array.isArray(data)) return [];
 
     return data.map((match: any) => {
-      const c = match?.candidate;
+      const c = match?.candidate || match?.profile || match;
+      const rawMoney = c?.budget?.max || c?.budget?.min || c?.budget || c?.monthlyBudget || c?.preferences?.financial?.budgetRange?.max || c?.preferences?.financial?.budgetRange?.min || 180;
+      const cleanBudget = typeof rawMoney === 'object' ? (rawMoney.max || rawMoney.min || 180) : Number(rawMoney);
+      const isEarly = c?.isEarlyBird ?? c?.habits?.isEarlyBird ?? c?.preferences?.lifestyle?.isEarlyBird ?? true;
+      const smokeText = c?.smokingPreference || c?.habits?.smokingPreference || c?.preferences?.social?.smokingPreference || 'No fumo';
+
       return {
         id: c?.id || Math.random().toString(),
-        name: c?.fullName || 'Estudiante UCE',
-        subtitle: c?.roomType || 'Privada',
-        affinityScore: Number(match?.compatibilityScore ?? 50),
+        name: c?.fullName || c?.name || 'Estudiante UCE',
+        subtitle: c?.roomType || c?.preferences?.financial?.roomType || 'Privada',
+        affinityScore: Number(match?.compatibilityScore ?? match?.affinityScore ?? 75),
         habits: [
-          c?.habits?.isEarlyBird ? 'Madrugador' : 'Noctámbulo',
-          c?.habits?.smokingPreference || 'No fumo'
+          isEarly ? 'Madrugador' : 'Noctámbulo',
+          smokeText.toLowerCase().includes('no') ? 'No fumo' : 'Fumador'
         ],
-        bio: match?.aiExplanation || 'Afinidad calculada por IA',
-        budget: c?.budget?.min || 150,
-        imageUrl: `https://api.dicebear.com/7.x/avataaars/svg?seed=${c?.fullName || 'default'}`
+        bio: match?.aiExplanation || match?.bio || 'Estudiante afín según algoritmo de convivencia.',
+        budget: isNaN(cleanBudget) ? 180 : cleanBudget,
+        imageUrl: c?.imageUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(c?.fullName || c?.name || 'default')}`
       };
     });
   };
