@@ -1,26 +1,39 @@
 import React from 'react';
 
-interface TextFieldProps {
+export interface TextFieldProps {
   label: string;
-  type?: string;
-  placeholder?: string;
   value: string | number;
-  error?: string;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  placeholder?: string;
+  type?: string;
+  error?: string;
+  disabled?: boolean;
 }
 
-export function TextField({ label, type = 'text', placeholder, value, error, onChange }: TextFieldProps) {
+export const TextField: React.FC<TextFieldProps> = ({
+  label,
+  value,
+  onChange,
+  placeholder,
+  type = 'text',
+  error,
+  disabled = false,
+}) => {
   return (
-    <div className="flex flex-col">
-      <label className="text-sm font-bold text-secondary mb-2">{label}</label>
+    <div className="flex flex-col gap-1.5">
+      <label className="text-sm font-bold text-secondary">{label}</label>
       <input
         type={type}
-        placeholder={placeholder}
         value={value}
         onChange={onChange}
-        className={`p-3 rounded-xl border focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all ${error ? 'border-red-500 bg-red-50' : 'border-gray-200 bg-gray-50'}`}
+        placeholder={placeholder}
+        disabled={disabled}
+        className={`w-full px-4 py-3 rounded-xl border bg-gray-50/50 focus:bg-white transition-all outline-none 
+          ${disabled ? 'opacity-60 cursor-not-allowed bg-gray-100' : ''} 
+          ${error ? 'border-red-500 focus:ring-2 focus:ring-red-200' : 'border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20'}
+        `}
       />
-      {error && <span className="text-red-500 text-xs mt-1 font-semibold">{error}</span>}
+      {error && <span className="text-xs text-red-500 font-medium">{error}</span>}
     </div>
   );
-}
+};

@@ -12,6 +12,7 @@
   "dependencies": {
     "@azure/msal-browser": "^5.14.0",
     "@azure/msal-react": "^5.4.5",
+    "@kinde-oss/kinde-auth-react": "^5.12.1",
     "@tanstack/react-query": "^5.101.0",
     "axios": "^1.17.0",
     "react": "^19.2.6",
