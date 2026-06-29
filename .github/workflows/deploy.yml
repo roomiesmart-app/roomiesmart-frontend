@@ -1,13 +1,68 @@
-name: Build and Deploy Frontend
+name: CI/CD Frontend Pipeline (Release & Deploy)
 
 on:
   push:
     branches: [ "dev", "main", "qa" ]
-  workflow_dispatch:
+  pull_request: # 🟢 Dry runs for releases only on PRs to main
+    branches: [ "main" ]
+  workflow_dispatch: # Manual trigger
 
 jobs:
-  build-and-push:
+  # =========================================================
+  # STAGE 1: SEMANTIC RELEASE (Only affects the main branch)
+  # =========================================================
+  release:
+    name: Build and Release Frontend
     runs-on: ubuntu-latest
+    # Only runs on main (push) or dry runs (pull_request)
+    if: github.ref_name == 'main' || github.event_name == 'pull_request'
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      # 🛡️ THE LOCK: Compiles Vite and validates TypeScript before releasing
+      - name: Build React App
+        run: npm run build
+
+      # 🟢 DRY RUN: Only if it's a Pull Request
+      - name: Run Semantic Release (Dry Run)
+        if: github.event_name == 'pull_request'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npx semantic-release --dry-run
+
+      # 🔴 PRODUCTION: Only if it's a direct push/merge to main
+      - name: Run Semantic Release (Production)
+        if: github.event_name == 'push'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npx semantic-release
+
+  # =========================================================
+  # STAGE 2: BUILD & DEPLOY (Current Infrastructure)
+  # =========================================================
+  build-and-push:
+    name: Build and Deploy Docker
+    runs-on: ubuntu-latest
+    needs: [release]
+    # 🛡️ SRE LOCK: Runs as long as Release didn't fail, and skips PRs
+    if: |
+      always() && 
+      (needs.release.result == 'success' || needs.release.result == 'skipped') &&
+      github.event_name != 'pull_request'
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -47,7 +102,7 @@ jobs:
             VITE_KINDE_POST_LOGOUT_REDIRECT_URL=${{ env.API_URL }}
 
       # =========================================================
-      # DESPLIEGUE A DESARROLLO
+      # DEPLOY TO DEVELOPMENT
       # =========================================================
       - name: Deploy Frontend to Dev Environment
         if: github.ref_name == 'dev'
@@ -62,7 +117,7 @@ jobs:
             docker compose -f docker-compose.dev.yml up -d --remove-orphans frontend
 
       # =========================================================
-      # DESPLIEGUE A PRODUCCIÓN
+      # DEPLOY TO PRODUCTION
       # =========================================================
       - name: Deploy Frontend to Production Environment
         if: github.ref_name == 'main'
@@ -77,10 +132,10 @@ jobs:
             docker compose -f docker-compose.prod.yml up -d --remove-orphans frontend
 
       # =========================================================
-      # DESPLIEGUE A QA
+      # DEPLOY TO QA
       # =========================================================
       - name: Deploy Frontend to QA Environment
-        if: github.ref_name == 'qa'
+        if: github.ref_name == 'qa' || github.event_name == 'workflow_dispatch'
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.AWS_HOST_QA }}
