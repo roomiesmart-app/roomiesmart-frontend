@@ -15,11 +15,11 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({ onFiltersChange })
   const hobbiesOptions = ['Cocina', 'Gaming', 'Ejercicio', 'Fotografía', 'Lectura', 'Viajar', 'Yoga', 'Arte', 'Senderismo'];
   const musicOptions = ['Rap', 'Rock', 'Electronic', 'Reggaeton', 'Indie', 'Salsa', 'K-Pop', 'Jazz', 'Clásica'];
 
+  // CORRECCIÓN: Se eliminó el parámetro 'list' que no se usaba
   const toggleSelection = (item: string, setter: React.Dispatch<React.SetStateAction<string[]>>) => {
     setter(prev => prev.includes(item) ? prev.filter(i => i !== item) : [...prev, item]);
   };
 
-  // Esta función es la que el padre llamará para obtener el estado actual
   const getFilters = (): MatchmakingFilters => ({
     maxBudget: budget,
     hobbies,
@@ -28,7 +28,6 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({ onFiltersChange })
     cleaningFrequency: cleaning as any
   });
 
-  // Exponemos los filtros al padre cuando cambian
   React.useEffect(() => {
     onFiltersChange(getFilters());
   }, [budget, hobbies, musicGenres, smoking, cleaning]);
@@ -61,7 +60,8 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({ onFiltersChange })
         <label className="text-xs font-bold uppercase text-gray-500">Hobbies</label>
         <div className="flex flex-wrap gap-1">
           {hobbiesOptions.map(h => (
-            <button key={h} onClick={() => toggleSelection(h, hobbies, setHobbies)} className={`px-2 py-1 rounded text-[10px] ${hobbies.includes(h) ? 'bg-[#8C3A27] text-white' : 'bg-gray-100'}`}>{h}</button>
+            {/* CORRECCIÓN: Ahora solo envía 'h' y el 'setHobbies' */}
+            <button key={h} onClick={() => toggleSelection(h, setHobbies)} className={`px-2 py-1 rounded text-[10px] ${hobbies.includes(h) ? 'bg-[#8C3A27] text-white' : 'bg-gray-100'}`}>{h}</button>
           ))}
         </div>
       </div>
@@ -69,10 +69,11 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({ onFiltersChange })
         <label className="text-xs font-bold uppercase text-gray-500">Géneros Musicales</label>
         <div className="flex flex-wrap gap-1">
           {musicOptions.map(m => (
-            <button key={m} onClick={() => toggleSelection(m, musicGenres, setMusicGenres)} className={`px-2 py-1 rounded text-[10px] ${musicGenres.includes(m) ? 'bg-[#8C3A27] text-white' : 'bg-gray-100'}`}>{m}</button>
+            {/* CORRECCIÓN: Ahora solo envía 'm' y el 'setMusicGenres' */}
+            <button key={m} onClick={() => toggleSelection(m, setMusicGenres)} className={`px-2 py-1 rounded text-[10px] ${musicGenres.includes(m) ? 'bg-[#8C3A27] text-white' : 'bg-gray-100'}`}>{m}</button>
           ))}
         </div>
-      </div>
-    </aside>
+      </div >
+    </aside >
   );
 };
