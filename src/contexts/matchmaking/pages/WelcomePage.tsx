@@ -23,8 +23,7 @@ export const WelcomePage: React.FC = () => {
         <nav className="flex gap-6 text-sm font-medium text-gray-600">
           <button onClick={() => navigate('/matchmaking')} className="hover:text-[#8C3A27] font-medium">Find Roomies</button>
           <button className="hover:text-[#8C3A27] font-medium opacity-50 cursor-not-allowed">Post Space</button>
-          {/* 🔥 Botón de Finanzas Activado */}
-          <button onClick={() => navigate('/finanzas')} className="hover:text-[#8C3A27] font-medium transition-colors">Finance</button>
+          <button className="hover:text-[#8C3A27] font-medium opacity-50 cursor-not-allowed">Finance</button>
         </nav>
         <div className="flex items-center gap-3">
           <div className="text-right">
@@ -92,12 +91,8 @@ export const WelcomePage: React.FC = () => {
               <span className="text-sm font-semibold">Servicios</span>
               <span className="text-red-500 font-bold">-$12.40</span>
             </div>
-            {/* 🔥 Botón de Finanzas Activado */}
-            <button 
-              onClick={() => navigate('/finanzas')}
-              className="w-full bg-[#8C3A27] text-white py-4 rounded-2xl font-semibold mt-4 hover:bg-[#702d1f] transition-colors"
-            >
-              Ir a Finanzas
+            <button className="w-full bg-[#5C6B7B] text-white py-4 rounded-2xl font-semibold mt-4 opacity-50 cursor-not-allowed">
+              Próximamente
             </button>
           </div>
         </div>
