@@ -11,8 +11,6 @@ import { WelcomePage } from "../../contexts/matchmaking/pages/WelcomePage";
 import { MatchmakingDashboardPage } from "../../contexts/matchmaking/pages/MatchmakingDashboardPage";
 import { AuthDispatcher } from "./AuthDispatcher";
 import { AxiosInterceptor } from "./AxiosInterceptor";
-import { MainLayout } from "../../shared/layouts/MainLayout";
-import { FinanceDashboardPage } from "../../contexts/finances/pages/FinanceDashboardPage";
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isLoading, isAuthenticated } = useKindeAuth();
@@ -58,7 +56,6 @@ function App() {
 
           <Route path="/dashboard" element={<ProtectedRoute><WelcomePage /></ProtectedRoute>} />
           <Route path="/matchmaking" element={<ProtectedRoute><MatchmakingDashboardPage /></ProtectedRoute>} />
-          <Route path="/finanzas" element={<ProtectedRoute><MainLayout><FinanceDashboardPage /></MainLayout></ProtectedRoute>} />
         </Routes>
       </AxiosInterceptor>
     </BrowserRouter>
