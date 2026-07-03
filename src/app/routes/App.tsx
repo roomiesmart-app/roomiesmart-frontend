@@ -36,7 +36,6 @@ function App() {
           <Route path="/" element={<Navigate to="/dispatcher" replace />} />
           <Route path="/dispatcher" element={<ProtectedRoute><AuthDispatcher /></ProtectedRoute>} />
           <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
-
           <Route 
             path="/onboarding/*" 
             element={
@@ -55,7 +54,6 @@ function App() {
               </ProtectedRoute>
             } 
           />
-
           <Route path="/dashboard" element={<ProtectedRoute><WelcomePage /></ProtectedRoute>} />
           <Route path="/matchmaking" element={<ProtectedRoute><MatchmakingDashboardPage /></ProtectedRoute>} />
           <Route path="/finanzas" element={<ProtectedRoute><MainLayout><FinanceDashboardPage /></MainLayout></ProtectedRoute>} />
