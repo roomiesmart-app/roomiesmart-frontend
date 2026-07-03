@@ -1,36 +1,36 @@
 import React from 'react';
-import { ShoppingCart, Zap, User } from 'lucide-react';
-import type { Transaction } from '../models/finance.types';
+import { Receipt, ShoppingCart, Zap } from 'lucide-react'; // Iconos para tus tipos de gasto
+import type { Transaction } from '../models/finance.types'; // 🔥 CAMBIA ESTO: Debería ser Transaction, no RoommateDebt
 
 interface Props {
-  transaction: Transaction;
+  transaction: Transaction; 
 }
 
 export const TransactionItem: React.FC<Props> = ({ transaction }) => {
   const getIcon = () => {
     switch (transaction.type) {
-      case 'shopping': return <div className="w-12 h-12 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center"><ShoppingCart size={24} /></div>;
-      case 'utilities': return <div className="w-12 h-12 bg-green-50 text-green-500 rounded-full flex items-center justify-center"><Zap size={24} /></div>;
-      case 'cleaning': return <div className="w-12 h-12 bg-purple-50 text-purple-500 rounded-full flex items-center justify-center"><User size={24} /></div>;
+      case 'utilities': return <Zap className="text-yellow-600" />;
+      case 'cleaning': return <Receipt className="text-blue-600" />;
+      default: return <ShoppingCart className="text-[#8C3A27]" />;
     }
   };
 
   return (
-    <div className="bg-white p-5 rounded-3xl shadow-sm border border-[#F2E3DB] flex items-center justify-between hover:shadow-md transition-shadow cursor-pointer">
+    <div className="bg-white p-4 rounded-2xl shadow-sm border border-[#F2E3DB] flex items-center justify-between">
       <div className="flex items-center gap-4">
-        {getIcon()}
+        <div className="p-3 bg-gray-50 rounded-full">
+          {getIcon()}
+        </div>
         <div>
           <h4 className="font-bold text-gray-900">{transaction.title}</h4>
-          <p className="text-sm text-gray-500">Pagado por {transaction.paidBy} • Compartido con {transaction.sharedWithCount}</p>
+          <p className="text-xs text-gray-500 font-medium">Pagado por {transaction.paidBy}</p>
         </div>
       </div>
+      
       <div className="text-right">
-        <p className="font-extrabold text-gray-900">${transaction.totalAmount.toFixed(2)}</p>
+        <p className="font-bold text-gray-900">${transaction.totalAmount.toFixed(2)}</p>
         {transaction.yourShare && (
-          <p className="text-sm font-bold text-[#DC2626]">Tu parte: ${transaction.yourShare.toFixed(2)}</p>
-        )}
-        {transaction.owedToYou && (
-          <p className="text-sm font-bold text-[#059669]">Te deben: ${transaction.owedToYou.toFixed(2)}</p>
+          <p className="text-xs text-red-500 font-bold">Tu parte: ${transaction.yourShare.toFixed(2)}</p>
         )}
       </div>
     </div>
