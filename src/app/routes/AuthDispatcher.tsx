@@ -11,7 +11,7 @@ export const AuthDispatcher = () => {
   useEffect(() => {
     const checkUserStatus = async () => {
       if (isLoading) return;
-      
+
       if (!user) {
         navigate('/login', { replace: true });
         return;
@@ -19,13 +19,8 @@ export const AuthDispatcher = () => {
 
       try {
         const email = user.email;
-        
-        console.log("¡Usuario atrapado por Kinde, bb! 🚀");
-        console.log("Objeto completo institucional:", user);
-        console.log("Correo enviado al backend:", email);
-
         const response = await api.get(`/api/v1/identity/check-status/${email}`);
-        
+
         if (response.data.exists) {
           navigate('/dashboard', { replace: true });
         } else {
@@ -43,9 +38,11 @@ export const AuthDispatcher = () => {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center">
         <h1 className="text-2xl font-bold text-red-600 mb-2">Servidor no disponible</h1>
-        <p className="text-gray-600 mb-6">No pudimos verificar tu estado en la base de datos. Por seguridad, el registro está bloqueado.</p>
-        <button 
-          onClick={() => window.location.reload()} 
+        <p className="text-gray-600 mb-6">
+          No pudimos verificar tu estado en la base de datos. Por seguridad, el registro está bloqueado.
+        </p>
+        <button
+          onClick={() => window.location.reload()}
           className="bg-primary text-white px-6 py-3 rounded-full font-bold hover:bg-primary/90 transition-all"
         >
           Reintentar conexión
@@ -56,7 +53,7 @@ export const AuthDispatcher = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#f8f9fa]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-[#8C3A27]"></div>
+      <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-[#8C3A27]"></div>
     </div>
   );
 };
