@@ -9,10 +9,12 @@ import OnboardingSocialProfilePage from "../../contexts/identity-profile/pages/O
 import OnboardingFinancialExpectationPage from "../../contexts/identity-profile/pages/OnboardingFinancialExpectationPage";
 import { WelcomePage } from "../../contexts/matchmaking/pages/WelcomePage";
 import { MatchmakingDashboardPage } from "../../contexts/matchmaking/pages/MatchmakingDashboardPage";
+import { PublishDepartmentPage } from "../../contexts/matchmaking/pages/PublishDepartmentPage";
 import { AuthDispatcher } from "./AuthDispatcher";
 import { AxiosInterceptor } from "./AxiosInterceptor";
 import { MainLayout } from "../../shared/layouts/MainLayout";
 import { FinanceDashboardPage } from "../../contexts/finances/pages/FinanceDashboardPage";
+import { RoomieProvider } from "../../contexts/roomie/RoomieContext";
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isLoading, isAuthenticated } = useKindeAuth();
@@ -32,8 +34,9 @@ function App() {
   return (
     <BrowserRouter>
       <AxiosInterceptor>
-        <Routes>
-          <Route path="/" element={<Navigate to="/dispatcher" replace />} />
+        <RoomieProvider>
+          <Routes>
+            <Route path="/" element={<Navigate to="/dispatcher" replace />} />
           <Route
             path="/dispatcher"
             element={
@@ -97,6 +100,14 @@ function App() {
             }
           />
           <Route
+            path="/publish-department"
+            element={
+              <ProtectedRoute>
+                <PublishDepartmentPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/finanzas"
             element={
               <ProtectedRoute>
@@ -107,6 +118,7 @@ function App() {
             }
           />
         </Routes>
+      </RoomieProvider>
       </AxiosInterceptor>
     </BrowserRouter>
   );

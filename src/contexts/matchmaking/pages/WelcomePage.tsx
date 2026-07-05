@@ -27,7 +27,10 @@ export const WelcomePage: React.FC = () => {
           >
             Find Roomies
           </button>
-          <button className="hover:text-[#8C3A27] font-medium opacity-50 cursor-not-allowed">
+          <button
+            onClick={() => navigate("/publish-department")}
+            className="hover:text-[#8C3A27] font-medium"
+          >
             Post Space
           </button>
           {/* 🔥 Botón de Finanzas Activado */}
