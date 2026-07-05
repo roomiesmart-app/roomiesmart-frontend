@@ -3,12 +3,12 @@ import { useKindeAuth } from '@kinde-oss/kinde-auth-react';
 import api from '../../contexts/identity-profile/services/api';
 
 export const AxiosInterceptor = ({ children }: { children: ReactNode }) => {
-  const { getToken } = useKindeAuth();
+  const { getIdToken } = useKindeAuth();
 
   useEffect(() => {
     const interceptor = api.interceptors.request.use(
       async (config) => {
-        const token = await getToken();
+        const token = await getIdToken();
         if (token && config.headers) {
           config.headers.Authorization = `Bearer ${token}`;
         }
@@ -20,7 +20,8 @@ export const AxiosInterceptor = ({ children }: { children: ReactNode }) => {
     return () => {
       api.interceptors.request.eject(interceptor);
     };
-  }, [getToken]);
+  }, [getIdToken]);
 
   return <>{children}</>;
 };
+export default AxiosInterceptor;
