@@ -1,27 +1,13 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { useNavigate } from "react-router-dom";
+import { useKindeAuth } from "@kinde-oss/kinde-auth-react";
 
-export const WelcomeDashboardPage: React.FC = () => {
+export const WelcomePage: React.FC = () => {
   const navigate = useNavigate();
-  const [firstName, setFirstName] = useState("Roomie");
-  const [lastName, setLastName] = useState("");
+  const { user } = useKindeAuth();
 
-  useEffect(() => {
-    const sessionData = localStorage.getItem("user");
-
-    if (sessionData) {
-      try {
-        const { name } = JSON.parse(sessionData);
-        if (name) {
-          const nameParts = name.trim().split(" ");
-          setFirstName(nameParts[0]);
-          setLastName(nameParts.slice(1).join(" "));
-        }
-      } catch (error) {
-        setFirstName("Roomie");
-      }
-    }
-  }, []);
+  const firstName = user?.givenName || "Roomie";
+  const lastName = user?.familyName || "";
 
   const metrics = [
     { label: "MATCHES", value: "12" },
@@ -44,7 +30,11 @@ export const WelcomeDashboardPage: React.FC = () => {
           <button className="hover:text-[#8C3A27] font-medium opacity-50 cursor-not-allowed">
             Post Space
           </button>
-          <button className="hover:text-[#8C3A27] font-medium opacity-50 cursor-not-allowed">
+          {/* 🔥 Botón de Finanzas Activado */}
+          <button
+            onClick={() => navigate("/finanzas")}
+            className="hover:text-[#8C3A27] font-medium transition-colors"
+          >
             Finance
           </button>
         </nav>
@@ -55,10 +45,14 @@ export const WelcomeDashboardPage: React.FC = () => {
             </p>
             <p className="text-xs text-gray-500">Universidad Central</p>
           </div>
-          <div className="w-10 h-10 bg-gray-300 rounded-full overflow-hidden">
+          <div className="w-10 h-10 bg-gray-300 rounded-full overflow-hidden flex items-center justify-center">
             <img
-              src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${firstName}`}
+              src={
+                user?.picture ||
+                `https://api.dicebear.com/7.x/avataaars/svg?seed=${firstName}`
+              }
               alt="Avatar"
+              className="w-full h-full object-cover"
             />
           </div>
         </div>
@@ -125,8 +119,12 @@ export const WelcomeDashboardPage: React.FC = () => {
               <span className="text-sm font-semibold">Servicios</span>
               <span className="text-red-500 font-bold">-$12.40</span>
             </div>
-            <button className="w-full bg-[#5C6B7B] text-white py-4 rounded-2xl font-semibold mt-4 opacity-50 cursor-not-allowed">
-              Próximamente
+            {/* 🔥 Botón de Finanzas Activado */}
+            <button
+              onClick={() => navigate("/finanzas")}
+              className="w-full bg-[#8C3A27] text-white py-4 rounded-2xl font-semibold mt-4 hover:bg-[#702d1f] transition-colors"
+            >
+              Ir a Finanzas
             </button>
           </div>
         </div>
@@ -178,3 +176,5 @@ export const WelcomeDashboardPage: React.FC = () => {
     </div>
   );
 };
+
+export default WelcomePage;
