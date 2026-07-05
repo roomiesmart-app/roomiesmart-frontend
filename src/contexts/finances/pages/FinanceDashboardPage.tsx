@@ -6,6 +6,7 @@ import api from '../../identity-profile/services/api';
 export const FinanceDashboardPage: React.FC = () => {
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [profileError, setProfileError] = useState<string | null>(null);
 
   const [presupuestoMensual, setPresupuestoMensual] = useState<number>(0);
   const [departmentId, setDepartmentId] = useState<string>("");
@@ -13,13 +14,29 @@ export const FinanceDashboardPage: React.FC = () => {
 
   const fetchUserProfile = useCallback(async () => {
     try {
-      const response = await api.get('/api/v1/identity/me'); 
-      const userProfile = response.data.data;
-      setPresupuestoMensual(userProfile.monthlyBudget || 0); 
-      setDbUserId(userProfile.id); 
-      setDepartmentId(userProfile.departmentId); 
+      const response = await api.get('/api/v1/identity/me');
+      const userProfile = response.data?.data ?? {};
+
+      // El presupuesto inicial se registra en el onboarding y puede llegar
+      // como campo plano (`budget`) o dentro de las preferencias financieras
+      // (`financial.budgetRange.max`), según el perfil del usuario.
+      const presupuestoInicial =
+        userProfile.budget ??
+        userProfile.financial?.budgetRange?.max ??
+        userProfile.monthlyBudget ??
+        0;
+
+      setPresupuestoMensual(Number(presupuestoInicial) || 0);
+      setDbUserId(userProfile.id ?? "");
+      setDepartmentId(userProfile.departmentId ?? "");
+
+      if (!userProfile.id || !userProfile.departmentId) {
+        setProfileError('Tu perfil no tiene un departamento asignado todavía.');
+        setLoading(false);
+      }
     } catch (err) {
       console.error("Error al recuperar el perfil:", err);
+      setProfileError('No se pudo cargar tu perfil financiero.');
       setLoading(false);
     }
   }, []);
@@ -83,6 +100,7 @@ export const FinanceDashboardPage: React.FC = () => {
       </div>
       
       {loading && <div className="text-center">Sincronizando...</div>}
+      {profileError && <div className="text-center text-[#DC2626] text-sm">{profileError}</div>}
     </div>
   );
 };
