@@ -4,6 +4,10 @@ import { Plus, X, Receipt, DollarSign } from 'lucide-react';
 import api from '../../identity-profile/services/api';
 import { useRoomie } from '../../roomie/RoomieContext';
 import { financesService } from '../services/finances.service';
+import {
+  getDepartmentMembers,
+  type DepartmentMembersInfo,
+} from '../../matchmaking/services/MembershipService';
 import { TransactionItem } from '../components/TransactionItem';
 import { RoommateDebtCard } from '../components/RoommateDebtCard';
 import type { Transaction, RoommateDebt } from '../models/finance.types';
@@ -21,6 +25,7 @@ export const FinanceDashboardPage: React.FC = () => {
   const [departmentId, setDepartmentId] = useState('');
   const [dbUserId, setDbUserId] = useState('');
   const [profileLoaded, setProfileLoaded] = useState(false);
+  const [membersInfo, setMembersInfo] = useState<DepartmentMembersInfo | null>(null);
 
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -38,8 +43,7 @@ export const FinanceDashboardPage: React.FC = () => {
       const userProfile = response.data.data;
       setMonthlyBudget(userProfile.monthlyBudget ?? 0);
       setDbUserId(userProfile.id);
-      // Prioridad: 1) departamento publicado en esta sesión (RoomieContext),
-      // 2) departamento real que devuelve /me (puede ser null si no tiene).
+     
       setDepartmentId(publishedDepartmentId || userProfile.departmentId || '');
       setProfileLoaded(true);
     } catch (err) {
@@ -49,17 +53,49 @@ export const FinanceDashboardPage: React.FC = () => {
     }
   }, [publishedDepartmentId]);
 
+ 
+  useEffect(() => {
+    if (!departmentId) {
+      setMembersInfo(null);
+      return;
+    }
+    let cancelled = false;
+    getDepartmentMembers(departmentId)
+      .then((info) => {
+        if (!cancelled) setMembersInfo(info);
+      })
+      .catch((err) => {
+        console.error('No se pudieron cargar los miembros:', err);
+        if (!cancelled) setMembersInfo(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [departmentId]);
+
+  const sharedFinancesEnabled = membersInfo?.sharedFinancesEnabled ?? true;
+
   const loadDashboard = useCallback(async () => {
     if (!dbUserId) return;
     if (!departmentId) {
-      // Perfil cargado pero sin departamento: no hay nada que sincronizar
+      
       if (profileLoaded) setLoading(false);
+      return;
+    }
+    if (membersInfo && !membersInfo.sharedFinancesEnabled) {
+      
+      setData(null);
+      setLoading(false);
       return;
     }
     setLoading(true);
     setError(null);
     try {
-      const result = await financesService.getDashboardData(departmentId, dbUserId);
+      const result = await financesService.getDashboardData(
+        departmentId,
+        dbUserId,
+        membersInfo?.count ?? 4,
+      );
       setData(result);
     } catch (err) {
       console.error(err);
@@ -67,7 +103,7 @@ export const FinanceDashboardPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [departmentId, dbUserId, profileLoaded]);
+  }, [departmentId, dbUserId, profileLoaded, membersInfo]);
 
   useEffect(() => {
     fetchUserProfile();
@@ -131,7 +167,7 @@ export const FinanceDashboardPage: React.FC = () => {
         <h2 className="text-3xl font-extrabold text-gray-900">Mis Finanzas</h2>
         <button
           onClick={() => setShowAddExpense(true)}
-          disabled={!departmentId}
+          disabled={!departmentId || !sharedFinancesEnabled}
           className="flex items-center gap-2 bg-[#8C3A27] text-white px-5 py-2.5 rounded-full font-bold shadow-sm hover:bg-[#7a3222] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <Plus size={18} /> Añadir gasto
@@ -243,6 +279,21 @@ export const FinanceDashboardPage: React.FC = () => {
       )}
 
       {loading && !data && <div className="text-center text-gray-500 mb-6">Sincronizando...</div>}
+
+      {departmentId && membersInfo && !membersInfo.sharedFinancesEnabled && (
+        <div className="bg-[#FFF8F0] border border-amber-200 rounded-[2rem] p-8 text-center mb-10">
+          <h3 className="text-xl font-extrabold text-gray-900 mb-2">
+            Las finanzas compartidas aún no aplican
+          </h3>
+          <p className="text-gray-600 text-sm">
+            Tu departamento tiene {membersInfo.count} miembro. La división de
+            gastos se activa automáticamente cuando aceptes al menos un roomie
+            (2+ miembros). Revisa tus{' '}
+            <span className="font-bold text-[#8C3A27]">solicitudes de unión</span>{' '}
+            para hacer crecer tu hogar.
+          </p>
+        </div>
+      )}
 
       {profileLoaded && !departmentId && !loading && (
         <div className="bg-white rounded-[2rem] border border-[#F2E3DB] p-10 text-center mb-10">

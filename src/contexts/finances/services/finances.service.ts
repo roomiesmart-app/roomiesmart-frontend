@@ -14,17 +14,22 @@ interface BackendExpense {
 }
 
 export const financesService = {
-  getDashboardData: async (departmentId: string, currentUserId: string) => {
+  getDashboardData: async (
+    departmentId: string,
+    currentUserId: string,
+    totalRoomies: number = 4,
+  ) => {
     try {
       const response = await api.get(`/api/expenses/${departmentId}`);
-      
+
       const rawData: BackendExpense[] = response.data?.data || [];
 
       let houseTotal = 0;
       let youOwe = 0;
       let owedToYou = 0;
 
-      const TOTAL_ROOMIES = 4; 
+      
+      const TOTAL_ROOMIES = Math.max(totalRoomies, 1);
 
       const transactions = rawData.map((expense) => {
         houseTotal += expense.amount;
