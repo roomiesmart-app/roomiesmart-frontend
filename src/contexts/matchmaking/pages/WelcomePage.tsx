@@ -1,6 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { useKindeAuth } from "@kinde-oss/kinde-auth-react";
+import { NotificationBell } from "../../../shared/components/NotificationBell";
 
 export const WelcomePage: React.FC = () => {
   const navigate = useNavigate();
@@ -39,7 +40,25 @@ export const WelcomePage: React.FC = () => {
           >
             Post Space
           </button>
-          {/* 🔥 Botón de Finanzas Activado */}
+          <button
+            onClick={() => navigate("/mis-publicaciones")}
+            className="hover:text-[#8C3A27] font-medium"
+          >
+            My Spaces
+          </button>
+          <button
+            onClick={() => navigate("/solicitudes")}
+            className="hover:text-[#8C3A27] font-medium"
+          >
+            Requests
+          </button>
+          <button
+            onClick={() => navigate("/mensajes")}
+            className="hover:text-[#8C3A27] font-medium"
+          >
+            Messages
+          </button>
+          
           <button
             onClick={() => navigate("/finanzas")}
             className="hover:text-[#8C3A27] font-medium transition-colors"
@@ -48,13 +67,18 @@ export const WelcomePage: React.FC = () => {
           </button>
         </nav>
         <div className="flex items-center gap-3">
+          <NotificationBell />
           <div className="text-right">
             <p className="text-sm font-bold">
               {firstName} {lastName}
             </p>
             <p className="text-xs text-gray-500">Universidad Central</p>
           </div>
-          <div className="w-10 h-10 bg-gray-300 rounded-full overflow-hidden flex items-center justify-center">
+          <button
+            onClick={() => navigate("/perfil")}
+            title="Editar mi perfil"
+            className="w-10 h-10 bg-gray-300 rounded-full overflow-hidden flex items-center justify-center ring-2 ring-transparent hover:ring-[#8C3A27] transition"
+          >
             <img
               src={
                 user?.picture ||
@@ -63,7 +87,7 @@ export const WelcomePage: React.FC = () => {
               alt="Avatar"
               className="w-full h-full object-cover"
             />
-          </div>
+          </button>
         </div>
       </header>
 
@@ -128,7 +152,7 @@ export const WelcomePage: React.FC = () => {
               <span className="text-sm font-semibold">Servicios</span>
               <span className="text-red-500 font-bold">-$12.40</span>
             </div>
-            {/* 🔥 Botón de Finanzas Activado */}
+            
             <button
               onClick={() => navigate("/finanzas")}
               className="w-full bg-[#8C3A27] text-white py-4 rounded-2xl font-semibold mt-4 hover:bg-[#702d1f] transition-colors"

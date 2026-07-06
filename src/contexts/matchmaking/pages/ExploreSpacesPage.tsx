@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useRoomie } from "../../roomie/RoomieContext";
 import { listSpaces, type PublishedSpace } from "../services/PublishService";
+import { requestToJoin } from "../services/MembershipService";
 import { ChatModal } from "../components/ChatModal";
 
 const FALLBACK_IMAGE =
@@ -14,6 +15,33 @@ export const ExploreSpacesPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [chatTarget, setChatTarget] = useState<PublishedSpace | null>(null);
+  const [joinStatus, setJoinStatus] = useState<
+    Record<string, "sending" | "sent" | undefined>
+  >({});
+  const [joinError, setJoinError] = useState("");
+
+  const handleRequestToJoin = async (space: PublishedSpace) => {
+    if (!ownerId) {
+      setJoinError("Todavía estamos cargando tu perfil. Intenta en unos segundos.");
+      return;
+    }
+    setJoinError("");
+    setJoinStatus((prev) => ({ ...prev, [space.id]: "sending" }));
+    try {
+      await requestToJoin(space.id, ownerId);
+      setJoinStatus((prev) => ({ ...prev, [space.id]: "sent" }));
+    } catch (err: any) {
+      const message =
+        err?.response?.data?.message || "No se pudo enviar la solicitud.";
+      
+      if (message.includes("pendiente")) {
+        setJoinStatus((prev) => ({ ...prev, [space.id]: "sent" }));
+      } else {
+        setJoinStatus((prev) => ({ ...prev, [space.id]: undefined }));
+      }
+      setJoinError(message);
+    }
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -75,6 +103,12 @@ export const ExploreSpacesPage: React.FC = () => {
           </div>
         )}
 
+        {joinError && (
+          <div className="mb-6 rounded-3xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
+            {joinError}
+          </div>
+        )}
+
         {loading ? (
           <p className="text-center text-gray-500">Cargando espacios...</p>
         ) : spaces.length === 0 && !error ? (
@@ -123,18 +157,34 @@ export const ExploreSpacesPage: React.FC = () => {
                         {space.space_type}
                       </span>
                     )}
-                    <div className="mt-auto pt-4">
+                    <div className="mt-auto flex flex-col gap-2 pt-4">
                       {isMine ? (
                         <p className="rounded-full bg-gray-100 py-3 text-center text-sm font-semibold text-gray-500">
                           Tu publicación
                         </p>
                       ) : (
-                        <button
-                          onClick={() => setChatTarget(space)}
-                          className="w-full rounded-full bg-[#8C3A27] py-3 text-sm font-semibold text-white hover:bg-[#702d1f] transition"
-                        >
-                          Mensaje
-                        </button>
+                        <>
+                          <button
+                            onClick={() => setChatTarget(space)}
+                            className="w-full rounded-full bg-[#8C3A27] py-3 text-sm font-semibold text-white hover:bg-[#702d1f] transition"
+                          >
+                            Mensaje
+                          </button>
+                          <button
+                            onClick={() => handleRequestToJoin(space)}
+                            disabled={
+                              joinStatus[space.id] === "sending" ||
+                              joinStatus[space.id] === "sent"
+                            }
+                            className="w-full rounded-full border border-[#8C3A27] bg-white py-3 text-sm font-semibold text-[#8C3A27] hover:bg-[#F9F2EE] transition disabled:cursor-not-allowed disabled:opacity-60"
+                          >
+                            {joinStatus[space.id] === "sending"
+                              ? "Enviando..."
+                              : joinStatus[space.id] === "sent"
+                                ? "Solicitud enviada ✓"
+                                : "Solicitar Unirse"}
+                          </button>
+                        </>
                       )}
                     </div>
                   </div>

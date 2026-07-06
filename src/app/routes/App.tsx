@@ -11,6 +11,10 @@ import { WelcomePage } from "../../contexts/matchmaking/pages/WelcomePage";
 import { MatchmakingDashboardPage } from "../../contexts/matchmaking/pages/MatchmakingDashboardPage";
 import { PublishDepartmentPage } from "../../contexts/matchmaking/pages/PublishDepartmentPage";
 import { ExploreSpacesPage } from "../../contexts/matchmaking/pages/ExploreSpacesPage";
+import { MySpacesPage } from "../../contexts/matchmaking/pages/MySpacesPage";
+import { JoinRequestsPage } from "../../contexts/matchmaking/pages/JoinRequestsPage";
+import { ProfileSettingsPage } from "../../contexts/identity-profile/pages/ProfileSettingsPage";
+import { InboxPage } from "../../contexts/matchmaking/pages/InboxPage";
 import { AuthDispatcher } from "./AuthDispatcher";
 import { AxiosInterceptor } from "./AxiosInterceptor";
 import { MainLayout } from "../../shared/layouts/MainLayout";
@@ -116,6 +120,38 @@ function App() {
               element={
                 <ProtectedRoute>
                   <ExploreSpacesPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/mis-publicaciones"
+              element={
+                <ProtectedRoute>
+                  <MySpacesPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/solicitudes"
+              element={
+                <ProtectedRoute>
+                  <JoinRequestsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/perfil"
+              element={
+                <ProtectedRoute>
+                  <ProfileSettingsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/mensajes"
+              element={
+                <ProtectedRoute>
+                  <InboxPage />
                 </ProtectedRoute>
               }
             />

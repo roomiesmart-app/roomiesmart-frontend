@@ -1,9 +1,7 @@
 import api from "../../identity-profile/services/api";
 import { getSupabase } from "../../../config/supabaseClient";
 
-// El nombre DEBE coincidir con el bucket creado en la consola de Supabase
-// (Storage -> Buckets). "public" NO es un bucket: es el prefijo de URL
-// que usa Supabase para servir archivos de buckets públicos.
+
 const bucket = import.meta.env.VITE_SUPABASE_BUCKET || "department-photos";
 
 export interface PublishedSpace {
@@ -83,6 +81,31 @@ export async function createSpace(payload: {
 export async function listSpaces(): Promise<PublishedSpace[]> {
   const response = await api.get("/api/v1/roomies/spaces");
   return response.data?.data || response.data || [];
+}
+
+
+export async function updateSpace(
+  spaceId: string,
+  payload: Partial<{
+    cityId: string;
+    title: string;
+    description: string;
+    monthlyPrice: number;
+    locationAddress: string;
+    neighborhood: string;
+    spaceType: string;
+    commonAreas: string[];
+    amenities: string[];
+    images: string[];
+  }>,
+): Promise<PublishedSpace> {
+  const response = await api.put(`/api/v1/roomies/spaces/${spaceId}`, payload);
+  return response.data;
+}
+
+
+export async function unpublishSpace(spaceId: string): Promise<void> {
+  await api.delete(`/api/v1/roomies/spaces/${spaceId}`);
 }
 
 export async function addExpense(payload: {
