@@ -13,9 +13,13 @@ export interface ProfileData {
 
 interface ProfileCardProps {
   profile: ProfileData;
+  onMessage?: (profile: ProfileData) => void;
 }
 
-export const ProfileCard: React.FC<ProfileCardProps> = ({ profile }) => {
+export const ProfileCard: React.FC<ProfileCardProps> = ({
+  profile,
+  onMessage,
+}) => {
   return (
     <div className="bg-white rounded-[2rem] overflow-hidden shadow-sm border border-[#F2E3DB] flex flex-col">
       <div className="relative h-48">
@@ -44,7 +48,11 @@ export const ProfileCard: React.FC<ProfileCardProps> = ({ profile }) => {
           <span className="text-[#8C3A27] font-bold text-sm flex items-center gap-2">
             💵 ${profile.budget}/mes
           </span>
-          <button className="bg-[#8C3A27] text-white px-6 py-2.5 rounded-full text-sm font-bold hover:bg-[#702d1f] transition">
+          <button
+            type="button"
+            onClick={() => onMessage?.(profile)}
+            className="bg-[#8C3A27] text-white px-6 py-2.5 rounded-full text-sm font-bold hover:bg-[#702d1f] transition"
+          >
             Mensaje
           </button>
         </div>

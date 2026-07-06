@@ -2,17 +2,31 @@ import React, { useState, useEffect } from "react";
 import { useKindeAuth } from "@kinde-oss/kinde-auth-react";
 import { FilterSidebar } from "../components/FilterSidebar";
 import { ProfileCard, type ProfileData } from "../components/ProfileCard";
+import { ChatModal } from "../components/ChatModal";
+import { useRoomie } from "../../roomie/RoomieContext";
 import { matchmakingService } from "../services/matchmaking.services";
 import type { MatchmakingFilters } from "../types/matchmaking.types";
 
 export const MatchmakingDashboardPage: React.FC = () => {
   const { user } = useKindeAuth();
+  const { ownerId } = useRoomie();
   const [naturalProfiles, setNaturalProfiles] = useState<ProfileData[]>([]);
   const [filteredProfiles, setFilteredProfiles] = useState<ProfileData[]>([]);
   const [loadingNatural, setLoadingNatural] = useState<boolean>(true);
   const [loadingFiltered, setLoadingFiltered] = useState<boolean>(false);
   const [hasSearched, setHasSearched] = useState<boolean>(false);
   const [currentFilters, setCurrentFilters] = useState<MatchmakingFilters>({});
+  const [chatTarget, setChatTarget] = useState<ProfileData | null>(null);
+
+  const handleOpenChat = (profile: ProfileData) => {
+    if (!ownerId) {
+      alert(
+        "Todavía estamos cargando tu perfil. Intenta de nuevo en unos segundos.",
+      );
+      return;
+    }
+    setChatTarget(profile);
+  };
 
   const formatProfiles = (data: any[]): ProfileData[] => {
     if (!Array.isArray(data)) return [];
@@ -129,7 +143,11 @@ export const MatchmakingDashboardPage: React.FC = () => {
               <p>Analizando personalidades con IA...</p>
             ) : (
               naturalProfiles.map((p) => (
-                <ProfileCard key={`nat-${p.id}`} profile={p} />
+                <ProfileCard
+                  key={`nat-${p.id}`}
+                  profile={p}
+                  onMessage={handleOpenChat}
+                />
               ))
             )}
           </div>
@@ -154,13 +172,26 @@ export const MatchmakingDashboardPage: React.FC = () => {
                 </p>
               ) : (
                 filteredProfiles.map((p) => (
-                  <ProfileCard key={`filt-${p.id}`} profile={p} />
+                  <ProfileCard
+                    key={`filt-${p.id}`}
+                    profile={p}
+                    onMessage={handleOpenChat}
+                  />
                 ))
               )}
             </div>
           </div>
         )}
       </section>
+
+      {chatTarget && ownerId && (
+        <ChatModal
+          currentUserId={ownerId}
+          targetUserId={chatTarget.id}
+          targetName={chatTarget.name}
+          onClose={() => setChatTarget(null)}
+        />
+      )}
     </main>
   );
 };

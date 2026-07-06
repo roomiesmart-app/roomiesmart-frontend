@@ -1,12 +1,33 @@
 import api from "../../identity-profile/services/api";
-import { supabase } from "../../../config/supabaseClient";
+import { getSupabase } from "../../../config/supabaseClient";
 
-const bucket = import.meta.env.VITE_SUPABASE_BUCKET || "public";
+// El nombre DEBE coincidir con el bucket creado en la consola de Supabase
+// (Storage -> Buckets). "public" NO es un bucket: es el prefijo de URL
+// que usa Supabase para servir archivos de buckets públicos.
+const bucket = import.meta.env.VITE_SUPABASE_BUCKET || "department-photos";
+
+export interface PublishedSpace {
+  id: string;
+  owner_id: string;
+  city_id: string | null;
+  title: string;
+  description: string;
+  monthly_price: number;
+  location_address: string;
+  neighborhood: string | null;
+  space_type: string | null;
+  common_areas: string[];
+  amenities: string[];
+  images: string[];
+  is_available: boolean;
+  created_at?: string;
+}
 
 export async function uploadDepartmentPhotos(
   files: File[],
   folderPath: string,
 ) {
+  const supabase = getSupabase();
   const uploadedUrls: string[] = [];
 
   for (const file of files) {
@@ -20,7 +41,13 @@ export async function uploadDepartmentPhotos(
       });
 
     if (uploadError) {
-      throw uploadError;
+      if (/bucket/i.test(uploadError.message)) {
+        throw new Error(
+          `El bucket "${bucket}" no existe en Supabase Storage. ` +
+            "Verifica el nombre en la consola y en VITE_SUPABASE_BUCKET.",
+        );
+      }
+      throw new Error(`Error subiendo "${file.name}": ${uploadError.message}`);
     }
 
     const { data: publicUrlData } = supabase.storage
@@ -43,10 +70,19 @@ export async function createSpace(payload: {
   description: string;
   monthlyPrice: number;
   locationAddress: string;
+  neighborhood: string;
+  spaceType: string;
+  commonAreas: string[];
+  amenities: string[];
   images: string[];
 }) {
   const response = await api.post("/api/v1/roomies/spaces", payload);
   return response.data;
+}
+
+export async function listSpaces(): Promise<PublishedSpace[]> {
+  const response = await api.get("/api/v1/roomies/spaces");
+  return response.data?.data || response.data || [];
 }
 
 export async function addExpense(payload: {

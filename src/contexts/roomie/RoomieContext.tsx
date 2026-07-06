@@ -5,7 +5,8 @@ import React, {
   useMemo,
   useState,
 } from "react";
-import { useMsal } from "@azure/msal-react";
+import { useKindeAuth } from "@kinde-oss/kinde-auth-react";
+import api from "../identity-profile/services/api";
 
 interface RoomieState {
   ownerId: string;
@@ -39,22 +40,40 @@ function getInitialState(): RoomieState {
 }
 
 export function RoomieProvider({ children }: { children: React.ReactNode }) {
-  const { accounts } = useMsal();
+  const { isAuthenticated, getIdToken } = useKindeAuth();
   const [ownerId, setOwnerId] = useState<string>(getInitialState().ownerId);
   const [departmentId, setDepartmentId] = useState<string>(
     getInitialState().departmentId,
   );
 
   useEffect(() => {
-    if (accounts.length === 0) return;
+    if (!isAuthenticated) return;
 
-    const account = accounts[0] as any;
-    const claimOwnerId =
-      account.idTokenClaims?.oid || account.homeAccountId || "";
-    if (claimOwnerId && claimOwnerId !== ownerId) {
-      setOwnerId(claimOwnerId);
-    }
-  }, [accounts, ownerId]);
+    let cancelled = false;
+
+    const fetchProfileId = async () => {
+      try {
+        // Token explícito: este efecto puede correr antes de que el
+        // AxiosInterceptor registre su interceptor de Authorization.
+        const token = await getIdToken();
+        const response = await api.get("/api/v1/identity/me", {
+          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+        });
+        const profileId: string = response.data?.data?.id || "";
+        if (!cancelled && profileId) {
+          setOwnerId(profileId);
+        }
+      } catch (error) {
+        console.error("No se pudo recuperar el perfil del usuario:", error);
+      }
+    };
+
+    fetchProfileId();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isAuthenticated, getIdToken]);
 
   useEffect(() => {
     window.localStorage.setItem(
