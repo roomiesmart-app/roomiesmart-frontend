@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Plus, X, Receipt, DollarSign } from 'lucide-react';
 import api from '../../identity-profile/services/api';
 import { useRoomie } from '../../roomie/RoomieContext';
@@ -14,10 +15,12 @@ interface DashboardData {
 }
 
 export const FinanceDashboardPage: React.FC = () => {
+  const navigate = useNavigate();
   const { departmentId: publishedDepartmentId } = useRoomie();
   const [monthlyBudget, setMonthlyBudget] = useState(0);
   const [departmentId, setDepartmentId] = useState('');
   const [dbUserId, setDbUserId] = useState('');
+  const [profileLoaded, setProfileLoaded] = useState(false);
 
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -35,9 +38,10 @@ export const FinanceDashboardPage: React.FC = () => {
       const userProfile = response.data.data;
       setMonthlyBudget(userProfile.monthlyBudget ?? 0);
       setDbUserId(userProfile.id);
-      // El departamento publicado (RoomieContext) tiene prioridad sobre
-      // el departmentId temporal que devuelve /me
-      setDepartmentId(publishedDepartmentId || userProfile.departmentId);
+      // Prioridad: 1) departamento publicado en esta sesión (RoomieContext),
+      // 2) departamento real que devuelve /me (puede ser null si no tiene).
+      setDepartmentId(publishedDepartmentId || userProfile.departmentId || '');
+      setProfileLoaded(true);
     } catch (err) {
       console.error('Error al recuperar el perfil:', err);
       setError('No pudimos cargar tu perfil. Intenta de nuevo más tarde.');
@@ -46,7 +50,12 @@ export const FinanceDashboardPage: React.FC = () => {
   }, [publishedDepartmentId]);
 
   const loadDashboard = useCallback(async () => {
-    if (!departmentId || !dbUserId) return;
+    if (!dbUserId) return;
+    if (!departmentId) {
+      // Perfil cargado pero sin departamento: no hay nada que sincronizar
+      if (profileLoaded) setLoading(false);
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
@@ -58,7 +67,7 @@ export const FinanceDashboardPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [departmentId, dbUserId]);
+  }, [departmentId, dbUserId, profileLoaded]);
 
   useEffect(() => {
     fetchUserProfile();
@@ -78,6 +87,11 @@ export const FinanceDashboardPage: React.FC = () => {
   const handleAddExpense = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setFormError(null);
+
+    if (!departmentId) {
+      setFormError('No tienes un departamento vinculado todavía.');
+      return;
+    }
 
     const amount = Number(expenseAmount);
     if (!expenseTitle.trim()) {
@@ -117,7 +131,8 @@ export const FinanceDashboardPage: React.FC = () => {
         <h2 className="text-3xl font-extrabold text-gray-900">Mis Finanzas</h2>
         <button
           onClick={() => setShowAddExpense(true)}
-          className="flex items-center gap-2 bg-[#8C3A27] text-white px-5 py-2.5 rounded-full font-bold shadow-sm hover:bg-[#7a3222] transition-colors"
+          disabled={!departmentId}
+          className="flex items-center gap-2 bg-[#8C3A27] text-white px-5 py-2.5 rounded-full font-bold shadow-sm hover:bg-[#7a3222] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <Plus size={18} /> Añadir gasto
         </button>
@@ -228,6 +243,23 @@ export const FinanceDashboardPage: React.FC = () => {
       )}
 
       {loading && !data && <div className="text-center text-gray-500 mb-6">Sincronizando...</div>}
+
+      {profileLoaded && !departmentId && !loading && (
+        <div className="bg-white rounded-[2rem] border border-[#F2E3DB] p-10 text-center mb-10">
+          <h3 className="text-xl font-extrabold text-gray-900 mb-2">
+            Aún no tienes un departamento vinculado
+          </h3>
+          <p className="text-gray-500 text-sm mb-6">
+            Publica tu espacio para activar las finanzas compartidas con tus roomies.
+          </p>
+          <button
+            onClick={() => navigate('/publish-department')}
+            className="bg-[#8C3A27] text-white px-8 py-3 rounded-full font-bold hover:bg-[#7a3222] transition-colors"
+          >
+            Publicar mi departamento
+          </button>
+        </div>
+      )}
 
       {data && data.roommateDebts.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10">
