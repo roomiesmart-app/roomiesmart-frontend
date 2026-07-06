@@ -100,6 +100,9 @@ jobs:
             VITE_KINDE_SITE_URL=${{ env.API_URL }}
             VITE_KINDE_POST_LOGIN_REDIRECT_URL=${{ env.API_URL }}/dispatcher
             VITE_KINDE_POST_LOGOUT_REDIRECT_URL=${{ env.API_URL }}
+            VITE_SUPABASE_URL=${{ secrets.VITE_SUPABASE_URL }}
+            VITE_SUPABASE_ANON_KEY=${{ secrets.VITE_SUPABASE_ANON_KEY }}
+            VITE_SUPABASE_BUCKET=${{ secrets.VITE_SUPABASE_BUCKET }}
 
       # =========================================================
       # DEPLOY TO DEVELOPMENT

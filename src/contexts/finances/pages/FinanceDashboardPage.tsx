@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Plus, X, Receipt, DollarSign } from 'lucide-react';
 import api from '../../identity-profile/services/api';
+import { useRoomie } from '../../roomie/RoomieContext';
 import { financesService } from '../services/finances.service';
 import { TransactionItem } from '../components/TransactionItem';
 import { RoommateDebtCard } from '../components/RoommateDebtCard';
@@ -13,6 +14,7 @@ interface DashboardData {
 }
 
 export const FinanceDashboardPage: React.FC = () => {
+  const { departmentId: publishedDepartmentId } = useRoomie();
   const [monthlyBudget, setMonthlyBudget] = useState(0);
   const [departmentId, setDepartmentId] = useState('');
   const [dbUserId, setDbUserId] = useState('');
@@ -33,13 +35,15 @@ export const FinanceDashboardPage: React.FC = () => {
       const userProfile = response.data.data;
       setMonthlyBudget(userProfile.monthlyBudget ?? 0);
       setDbUserId(userProfile.id);
-      setDepartmentId(userProfile.departmentId);
+      // El departamento publicado (RoomieContext) tiene prioridad sobre
+      // el departmentId temporal que devuelve /me
+      setDepartmentId(publishedDepartmentId || userProfile.departmentId);
     } catch (err) {
       console.error('Error al recuperar el perfil:', err);
       setError('No pudimos cargar tu perfil. Intenta de nuevo más tarde.');
       setLoading(false);
     }
-  }, []);
+  }, [publishedDepartmentId]);
 
   const loadDashboard = useCallback(async () => {
     if (!departmentId || !dbUserId) return;

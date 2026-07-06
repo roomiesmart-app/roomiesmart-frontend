@@ -28,6 +28,12 @@ export const WelcomePage: React.FC = () => {
             Find Roomies
           </button>
           <button
+            onClick={() => navigate("/explorar")}
+            className="hover:text-[#8C3A27] font-medium"
+          >
+            Explore Spaces
+          </button>
+          <button
             onClick={() => navigate("/publish-department")}
             className="hover:text-[#8C3A27] font-medium"
           >

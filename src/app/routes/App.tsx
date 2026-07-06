@@ -10,6 +10,7 @@ import OnboardingFinancialExpectationPage from "../../contexts/identity-profile/
 import { WelcomePage } from "../../contexts/matchmaking/pages/WelcomePage";
 import { MatchmakingDashboardPage } from "../../contexts/matchmaking/pages/MatchmakingDashboardPage";
 import { PublishDepartmentPage } from "../../contexts/matchmaking/pages/PublishDepartmentPage";
+import { ExploreSpacesPage } from "../../contexts/matchmaking/pages/ExploreSpacesPage";
 import { AuthDispatcher } from "./AuthDispatcher";
 import { AxiosInterceptor } from "./AxiosInterceptor";
 import { MainLayout } from "../../shared/layouts/MainLayout";
@@ -107,6 +108,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <PublishDepartmentPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/explorar"
+              element={
+                <ProtectedRoute>
+                  <ExploreSpacesPage />
                 </ProtectedRoute>
               }
             />

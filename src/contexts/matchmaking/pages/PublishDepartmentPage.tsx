@@ -12,8 +12,10 @@ const roomTypes = [
   "Habitación privada",
   "Habitación compartida",
 ];
+// Estos UUIDs DEBEN existir en la tabla `cities` de Supabase.
+// Verificado contra la BD real el 2026-07-05.
 const cityOptions = [
-  { id: "11111111-1111-1111-1111-111111111111", label: "Quito" },
+  { id: "edd2c2ec-d569-4572-84d5-45911d1b0939", label: "Quito" },
   { id: "22222222-2222-2222-2222-222222222222", label: "Guayaquil" },
   { id: "33333333-3333-3333-3333-333333333333", label: "Cuenca" },
 ];
@@ -32,7 +34,7 @@ export const PublishDepartmentPage: React.FC = () => {
   const [description, setDescription] = useState("");
   const [photos, setPhotos] = useState<File[]>([]);
   const [address, setAddress] = useState("");
-  const [city, setCity] = useState("");
+  const [neighborhood, setNeighborhood] = useState("");
   const [price, setPrice] = useState("");
   const navigate = useNavigate();
   const { ownerId, setDepartmentId } = useRoomie();
@@ -77,8 +79,21 @@ export const PublishDepartmentPage: React.FC = () => {
       return;
     }
 
-    if (step === 2 && (!cityId || !address || !price || !roomType)) {
+    if (
+      step === 2 &&
+      (!cityId || !address || !neighborhood || !price || !roomType)
+    ) {
       setSubmissionError("Completa todos los campos antes de continuar.");
+      return;
+    }
+
+    if (
+      step === 2 &&
+      (selectedAreas.length === 0 || selectedAmenities.length === 0)
+    ) {
+      setSubmissionError(
+        "Selecciona al menos un área común y una amenidad.",
+      );
       return;
     }
 
@@ -102,10 +117,23 @@ export const PublishDepartmentPage: React.FC = () => {
       return;
     }
 
-    if (!cityId || !title || !description || !address || !price || !roomType) {
+    if (
+      !cityId ||
+      !title ||
+      !description ||
+      !address ||
+      !neighborhood ||
+      !price ||
+      !roomType
+    ) {
       setSubmissionError(
         "Completa todos los campos requeridos antes de publicar.",
       );
+      return;
+    }
+
+    if (selectedAreas.length === 0 || selectedAmenities.length === 0) {
+      setSubmissionError("Selecciona al menos un área común y una amenidad.");
       return;
     }
 
@@ -131,6 +159,10 @@ export const PublishDepartmentPage: React.FC = () => {
         description,
         monthlyPrice: Number(price),
         locationAddress: address,
+        neighborhood,
+        spaceType: roomType,
+        commonAreas: selectedAreas,
+        amenities: selectedAmenities,
         images: imageUrls,
       });
 
@@ -311,8 +343,8 @@ export const PublishDepartmentPage: React.FC = () => {
                   <label className="flex flex-col gap-2 text-sm text-[#5C5C5C]">
                     Barrio / Sector
                     <input
-                      value={city}
-                      onChange={(e) => setCity(e.target.value)}
+                      value={neighborhood}
+                      onChange={(e) => setNeighborhood(e.target.value)}
                       placeholder="La Carolina, El Girón"
                       className="rounded-3xl border border-[#E5D1C6] bg-[#FDF8F6] p-4 focus:outline-none focus:ring-2 focus:ring-[#8C3A27]/30"
                     />
@@ -420,7 +452,12 @@ export const PublishDepartmentPage: React.FC = () => {
                         Ciudad / Barrio
                       </p>
                       <p className="text-[#4D403D]">
-                        {city || "No especificado"}
+                        {[
+                          cityOptions.find((c) => c.id === cityId)?.label,
+                          neighborhood,
+                        ]
+                          .filter(Boolean)
+                          .join(" / ") || "No especificado"}
                       </p>
                     </div>
                   </div>
