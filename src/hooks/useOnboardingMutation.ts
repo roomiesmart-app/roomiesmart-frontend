@@ -16,3 +16,11 @@ export const useLogin = () => {
     },
   });
 };
+
+export const useSaveOnboardingProfile = () => {
+  return useMutation({
+    mutationFn: async (payload: any) => {
+      return await OnboardingService.saveOnboardingProfile(payload);
+    },
+  });
+};

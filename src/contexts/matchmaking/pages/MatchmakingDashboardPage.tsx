@@ -1,41 +1,81 @@
-import React, { useState, useEffect } from 'react';
-import { useKindeAuth } from '@kinde-oss/kinde-auth-react';
-import { FilterSidebar } from '../components/FilterSidebar';
-import { ProfileCard, type ProfileData } from '../components/ProfileCard';
-import { matchmakingService } from '../services/matchmaking.services';
-import type { MatchmakingFilters } from '../types/matchmaking.types';
+import React, { useState, useEffect } from "react";
+import { useKindeAuth } from "@kinde-oss/kinde-auth-react";
+import { FilterSidebar } from "../components/FilterSidebar";
+import { ProfileCard, type ProfileData } from "../components/ProfileCard";
+import { ChatModal } from "../components/ChatModal";
+import { useRoomie } from "../../roomie/RoomieContext";
+import { matchmakingService } from "../services/matchmaking.services";
+import type { MatchmakingFilters } from "../types/matchmaking.types";
 
 export const MatchmakingDashboardPage: React.FC = () => {
   const { user } = useKindeAuth();
+  const { ownerId } = useRoomie();
   const [naturalProfiles, setNaturalProfiles] = useState<ProfileData[]>([]);
   const [filteredProfiles, setFilteredProfiles] = useState<ProfileData[]>([]);
   const [loadingNatural, setLoadingNatural] = useState<boolean>(true);
   const [loadingFiltered, setLoadingFiltered] = useState<boolean>(false);
   const [hasSearched, setHasSearched] = useState<boolean>(false);
   const [currentFilters, setCurrentFilters] = useState<MatchmakingFilters>({});
+  const [chatTarget, setChatTarget] = useState<ProfileData | null>(null);
 
- const formatProfiles = (data: any[]): ProfileData[] => {
+  const handleOpenChat = (profile: ProfileData) => {
+    if (!ownerId) {
+      alert(
+        "Todavía estamos cargando tu perfil. Intenta de nuevo en unos segundos.",
+      );
+      return;
+    }
+    setChatTarget(profile);
+  };
+
+  const formatProfiles = (data: any[]): ProfileData[] => {
     if (!Array.isArray(data)) return [];
 
     return data.map((match: any) => {
       const c = match?.candidate || match?.profile || match;
-      const rawMoney = c?.budget?.max || c?.budget?.min || c?.budget || c?.monthlyBudget || c?.preferences?.financial?.budgetRange?.max || c?.preferences?.financial?.budgetRange?.min || 180;
-      const cleanBudget = typeof rawMoney === 'object' ? (rawMoney.max || rawMoney.min || 180) : Number(rawMoney);
-      const isEarly = c?.isEarlyBird ?? c?.habits?.isEarlyBird ?? c?.preferences?.lifestyle?.isEarlyBird ?? true;
-      const smokeText = c?.smokingPreference || c?.habits?.smokingPreference || c?.preferences?.social?.smokingPreference || 'No fumo';
+      const rawMoney =
+        c?.budget?.max ||
+        c?.budget?.min ||
+        c?.budget ||
+        c?.monthlyBudget ||
+        c?.preferences?.financial?.budgetRange?.max ||
+        c?.preferences?.financial?.budgetRange?.min ||
+        180;
+      const cleanBudget =
+        typeof rawMoney === "object"
+          ? rawMoney.max || rawMoney.min || 180
+          : Number(rawMoney);
+      const isEarly =
+        c?.isEarlyBird ??
+        c?.habits?.isEarlyBird ??
+        c?.preferences?.lifestyle?.isEarlyBird ??
+        true;
+      const smokeText =
+        c?.smokingPreference ||
+        c?.habits?.smokingPreference ||
+        c?.preferences?.social?.smokingPreference ||
+        "No fumo";
 
       return {
         id: c?.id || Math.random().toString(),
-        name: c?.fullName || c?.name || 'Estudiante UCE',
-        subtitle: c?.roomType || c?.preferences?.financial?.roomType || 'Privada',
-        affinityScore: Number(match?.compatibilityScore ?? match?.affinityScore ?? 75),
+        name: c?.fullName || c?.name || "Estudiante UCE",
+        subtitle:
+          c?.roomType || c?.preferences?.financial?.roomType || "Privada",
+        affinityScore: Number(
+          match?.compatibilityScore ?? match?.affinityScore ?? 75,
+        ),
         habits: [
-          isEarly ? 'Madrugador' : 'Noctámbulo',
-          smokeText.toLowerCase().includes('no') ? 'No fumo' : 'Fumador'
+          isEarly ? "Madrugador" : "Noctámbulo",
+          smokeText.toLowerCase().includes("no") ? "No fumo" : "Fumador",
         ],
-        bio: match?.aiExplanation || match?.bio || 'Estudiante afín según algoritmo de convivencia.',
+        bio:
+          match?.aiExplanation ||
+          match?.bio ||
+          "Estudiante afín según algoritmo de convivencia.",
         budget: isNaN(cleanBudget) ? 180 : cleanBudget,
-        imageUrl: c?.imageUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(c?.fullName || c?.name || 'default')}`
+        imageUrl:
+          c?.imageUrl ||
+          `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(c?.fullName || c?.name || "default")}`,
       };
     });
   };
@@ -60,7 +100,10 @@ export const MatchmakingDashboardPage: React.FC = () => {
     setHasSearched(true);
     try {
       const authIdentifier = user?.email || user?.id || "";
-      const data = await matchmakingService.getMatches(authIdentifier, currentFilters);
+      const data = await matchmakingService.getMatches(
+        authIdentifier,
+        currentFilters,
+      );
       setFilteredProfiles(formatProfiles(data));
     } catch (err) {
       console.error(err);
@@ -77,7 +120,10 @@ export const MatchmakingDashboardPage: React.FC = () => {
     <main className="max-w-7xl mx-auto px-8 py-8 flex flex-col md:flex-row gap-12">
       <aside className="w-full md:w-72 border-r border-gray-200 pr-8">
         <FilterSidebar onFiltersChange={setCurrentFilters} />
-        <button onClick={handleManualSearch} className="w-full mt-6 bg-[#8C3A27] text-white py-3 rounded-lg font-bold hover:bg-[#7a3222] transition">
+        <button
+          onClick={handleManualSearch}
+          className="w-full mt-6 bg-[#8C3A27] text-white py-3 rounded-lg font-bold hover:bg-[#7a3222] transition"
+        >
           Buscar Roomies
         </button>
       </aside>
@@ -85,28 +131,67 @@ export const MatchmakingDashboardPage: React.FC = () => {
       <section className="flex-1 space-y-16">
         <div>
           <div className="mb-6">
-            <h1 className="text-3xl font-extrabold text-gray-900">Matchmaking Ideal</h1>
-            <p className="text-sm text-gray-500">Afinidad calculada por IA basada 100% en tu test de registro</p>
+            <h1 className="text-3xl font-extrabold text-gray-900">
+              Matchmaking Ideal
+            </h1>
+            <p className="text-sm text-gray-500">
+              Afinidad calculada por IA basada 100% en tu test de registro
+            </p>
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {loadingNatural ? <p>Analizando personalidades con IA...</p> : naturalProfiles.map(p => <ProfileCard key={`nat-${p.id}`} profile={p} />)}
+            {loadingNatural ? (
+              <p>Analizando personalidades con IA...</p>
+            ) : (
+              naturalProfiles.map((p) => (
+                <ProfileCard
+                  key={`nat-${p.id}`}
+                  profile={p}
+                  onMessage={handleOpenChat}
+                />
+              ))
+            )}
           </div>
         </div>
 
         {hasSearched && (
           <div className="pt-8 border-t-2 border-dashed border-gray-200">
             <div className="mb-6">
-              <h2 className="text-2xl font-bold text-[#8C3A27]">Búsqueda por Filtros</h2>
-              <p className="text-sm text-gray-500">Candidatos que encajan estrictamente con tus parámetros manuales</p>
+              <h2 className="text-2xl font-bold text-[#8C3A27]">
+                Búsqueda por Filtros
+              </h2>
+              <p className="text-sm text-gray-500">
+                Candidatos que encajan estrictamente con tus parámetros manuales
+              </p>
             </div>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {loadingFiltered ? <p>Filtrando...</p> : filteredProfiles.length === 0 ? (
-                <p className="text-gray-400 font-medium">Ningún roomie cumple con el 100% de esos filtros.</p>
-              ) : filteredProfiles.map(p => <ProfileCard key={`filt-${p.id}`} profile={p} />)}
+              {loadingFiltered ? (
+                <p>Filtrando...</p>
+              ) : filteredProfiles.length === 0 ? (
+                <p className="text-gray-400 font-medium">
+                  Ningún roomie cumple con el 100% de esos filtros.
+                </p>
+              ) : (
+                filteredProfiles.map((p) => (
+                  <ProfileCard
+                    key={`filt-${p.id}`}
+                    profile={p}
+                    onMessage={handleOpenChat}
+                  />
+                ))
+              )}
             </div>
           </div>
         )}
       </section>
+
+      {chatTarget && ownerId && (
+        <ChatModal
+          currentUserId={ownerId}
+          targetUserId={chatTarget.id}
+          targetName={chatTarget.name}
+          onClose={() => setChatTarget(null)}
+        />
+      )}
     </main>
   );
 };
