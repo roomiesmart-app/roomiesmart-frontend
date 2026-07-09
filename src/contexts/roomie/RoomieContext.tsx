@@ -1,50 +1,16 @@
-import React, {
-  createContext,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import React, { useEffect } from "react";
 import { useKindeAuth } from "@kinde-oss/kinde-auth-react";
 import api from "../identity-profile/services/api";
+import { useSessionStore } from "../../stores/useSessionStore";
 
-interface RoomieState {
-  ownerId: string;
-  departmentId: string;
-}
-
-interface RoomieContextProps extends RoomieState {
-  setOwnerId: (ownerId: string) => void;
-  setDepartmentId: (departmentId: string) => void;
-}
-
-const STORAGE_KEY = "roomieSmartState";
-
-const RoomieContext = createContext<RoomieContextProps | undefined>(undefined);
-
-function getInitialState(): RoomieState {
-  if (typeof window === "undefined") {
-    return { ownerId: "", departmentId: "" };
-  }
-
-  const cached = window.localStorage.getItem(STORAGE_KEY);
-  if (!cached) {
-    return { ownerId: "", departmentId: "" };
-  }
-
-  try {
-    return JSON.parse(cached) as RoomieState;
-  } catch {
-    return { ownerId: "", departmentId: "" };
-  }
-}
+// Migrado a Zustand: el estado global vive en useSessionStore (persistido
+// en localStorage). Este provider queda como "bootstrapper": resuelve el
+// UUID real del usuario vía /me cuando hay sesión de Kinde. La API pública
+// useRoomie() se conserva para no tocar las páginas existentes.
 
 export function RoomieProvider({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, getIdToken } = useKindeAuth();
-  const [ownerId, setOwnerId] = useState<string>(getInitialState().ownerId);
-  const [departmentId, setDepartmentId] = useState<string>(
-    getInitialState().departmentId,
-  );
+  const setOwnerId = useSessionStore((state) => state.setOwnerId);
 
   useEffect(() => {
     if (!isAuthenticated) return;
@@ -73,29 +39,16 @@ export function RoomieProvider({ children }: { children: React.ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, [isAuthenticated, getIdToken]);
+  }, [isAuthenticated, getIdToken, setOwnerId]);
 
-  useEffect(() => {
-    window.localStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify({ ownerId, departmentId }),
-    );
-  }, [ownerId, departmentId]);
-
-  const value = useMemo(
-    () => ({ ownerId, departmentId, setOwnerId, setDepartmentId }),
-    [ownerId, departmentId],
-  );
-
-  return (
-    <RoomieContext.Provider value={value}>{children}</RoomieContext.Provider>
-  );
+  return <>{children}</>;
 }
 
 export function useRoomie() {
-  const context = useContext(RoomieContext);
-  if (!context) {
-    throw new Error("useRoomie must be used within RoomieProvider");
-  }
-  return context;
+  const ownerId = useSessionStore((state) => state.ownerId);
+  const departmentId = useSessionStore((state) => state.departmentId);
+  const setOwnerId = useSessionStore((state) => state.setOwnerId);
+  const setDepartmentId = useSessionStore((state) => state.setDepartmentId);
+
+  return { ownerId, departmentId, setOwnerId, setDepartmentId };
 }
