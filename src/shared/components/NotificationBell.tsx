@@ -2,17 +2,11 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getSupabase } from "../../config/supabaseClient";
 import { useRoomie } from "../../contexts/roomie/RoomieContext";
-
-interface AppNotification {
-  id: string;
-  user_id: string;
-  type: "new_message" | "join_request" | "request_accepted" | "request_rejected";
-  title: string;
-  body: string | null;
-  resource_id: string | null;
-  is_read: boolean;
-  created_at: string;
-}
+import {
+  useNotificationStore,
+  selectUnreadCount,
+  type AppNotification,
+} from "../../stores/useNotificationStore";
 
 const routeForType: Record<AppNotification["type"], string> = {
   new_message: "/mensajes",
@@ -31,14 +25,21 @@ const iconForType: Record<AppNotification["type"], string> = {
 export const NotificationBell: React.FC = () => {
   const navigate = useNavigate();
   const { ownerId } = useRoomie();
-  const [notifications, setNotifications] = useState<AppNotification[]>([]);
+  // Estado global (Zustand): la lista y el contador viven en el store
+  const notifications = useNotificationStore((state) => state.notifications);
+  const setAll = useNotificationStore((state) => state.setAll);
+  const push = useNotificationStore((state) => state.push);
+  const markAllReadInStore = useNotificationStore((state) => state.markAllRead);
+  const unreadCount = useNotificationStore(selectUnreadCount);
   const [open, setOpen] = useState(false);
-
-  const unreadCount = notifications.filter((n) => !n.is_read).length;
 
 
   useEffect(() => {
-    if (!ownerId) return;
+    if (!ownerId) {
+      // Sin UUID de BD no hay filtro válido: revisar que /me esté respondiendo
+      console.warn("🔔 NotificationBell: sin ownerId, no se suscribe a Realtime.");
+      return;
+    }
 
     let supabase;
     try {
@@ -58,7 +59,7 @@ export const NotificationBell: React.FC = () => {
       .limit(20)
       .then(({ data, error }) => {
         if (!error && active && data) {
-          setNotifications(data as AppNotification[]);
+          setAll(data as AppNotification[]);
         }
       });
 
@@ -73,23 +74,31 @@ export const NotificationBell: React.FC = () => {
           filter: `user_id=eq.${ownerId}`,
         },
         (payload) => {
-          setNotifications((prev) =>
-            [payload.new as AppNotification, ...prev].slice(0, 20),
-          );
+          console.log("🔔 Notificación Realtime recibida:", payload.new);
+          push(payload.new as AppNotification);
         },
       )
-      .subscribe();
+      .subscribe((status, err) => {
+        // Diagnóstico: sin esto los fallos de suscripción son invisibles.
+        // SUBSCRIBED = ok; CHANNEL_ERROR/TIMED_OUT = revisar que la tabla
+        // esté en la publicación supabase_realtime (migración 006).
+        if (status === "SUBSCRIBED") {
+          console.log(`🔔 Realtime suscrito para user_id=${ownerId}`);
+        } else {
+          console.error(`🔔 Realtime estado=${status}`, err ?? "");
+        }
+      });
 
     return () => {
       active = false;
       supabase.removeChannel(channel);
     };
-  }, [ownerId]);
+  }, [ownerId, setAll, push]);
 
   const markAllRead = async () => {
     const unreadIds = notifications.filter((n) => !n.is_read).map((n) => n.id);
     if (unreadIds.length === 0) return;
-    setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
+    markAllReadInStore();
     try {
       await getSupabase()
         .from("notifications")

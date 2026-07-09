@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useRoomie } from "../../roomie/RoomieContext";
+import { useDebounce } from "../../../hooks/useDebounce";
 import { listSpaces, type PublishedSpace } from "../services/PublishService";
 import { requestToJoin } from "../services/MembershipService";
 import { ChatModal } from "../components/ChatModal";
@@ -19,6 +20,19 @@ export const ExploreSpacesPage: React.FC = () => {
     Record<string, "sending" | "sent" | undefined>
   >({});
   const [joinError, setJoinError] = useState("");
+  const [query, setQuery] = useState("");
+  // El filtro solo se recalcula 300ms después de la última tecla
+  const debouncedQuery = useDebounce(query, 300);
+
+  const filteredSpaces = useMemo(() => {
+    const term = debouncedQuery.trim().toLowerCase();
+    if (!term) return spaces;
+    return spaces.filter((space) =>
+      [space.title, space.neighborhood, space.space_type, space.location_address]
+        .filter(Boolean)
+        .some((field) => String(field).toLowerCase().includes(term)),
+    );
+  }, [spaces, debouncedQuery]);
 
   const handleRequestToJoin = async (space: PublishedSpace) => {
     if (!ownerId) {
@@ -97,6 +111,20 @@ export const ExploreSpacesPage: React.FC = () => {
           </div>
         </header>
 
+        <div className="mb-8">
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="🔍 Busca por título, barrio o tipo de espacio..."
+            className="w-full max-w-xl rounded-full border border-[#E5D1C6] bg-white px-6 py-3.5 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-[#8C3A27]/30"
+          />
+          {debouncedQuery && (
+            <p className="mt-2 text-xs text-gray-500">
+              {filteredSpaces.length} resultado(s) para “{debouncedQuery}”
+            </p>
+          )}
+        </div>
+
         {error && (
           <div className="mb-6 rounded-3xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
             {error}
@@ -111,18 +139,22 @@ export const ExploreSpacesPage: React.FC = () => {
 
         {loading ? (
           <p className="text-center text-gray-500">Cargando espacios...</p>
-        ) : spaces.length === 0 && !error ? (
+        ) : filteredSpaces.length === 0 && !error ? (
           <div className="rounded-[32px] border border-[#F1DED6] bg-white p-12 text-center">
             <p className="text-lg font-bold text-[#3B241C] mb-2">
-              Aún no hay espacios publicados
+              {debouncedQuery
+                ? "Ningún espacio coincide con tu búsqueda"
+                : "Aún no hay espacios publicados"}
             </p>
             <p className="text-sm text-gray-500">
-              Sé el primero en publicar tu departamento.
+              {debouncedQuery
+                ? "Prueba con otro barrio, título o tipo de espacio."
+                : "Sé el primero en publicar tu departamento."}
             </p>
           </div>
         ) : (
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {spaces.map((space) => {
+            {filteredSpaces.map((space) => {
               const isMine = ownerId && space.owner_id === ownerId;
               return (
                 <article

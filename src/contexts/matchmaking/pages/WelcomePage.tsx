@@ -1,14 +1,20 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { useKindeAuth } from "@kinde-oss/kinde-auth-react";
-import { NotificationBell } from "../../../shared/components/NotificationBell";
+import { Header } from "../../../shared/components/Header";
 
 export const WelcomePage: React.FC = () => {
   const navigate = useNavigate();
-  const { user } = useKindeAuth();
+  const { user, logout } = useKindeAuth();
 
   const firstName = user?.givenName || "Roomie";
   const lastName = user?.familyName || "";
+
+  const handleLogout = () => {
+    // Limpia la sesión local antes de cerrar sesión en Kinde
+    window.localStorage.removeItem("roomieSmartState");
+    logout();
+  };
 
   const metrics = [
     { label: "MATCHES", value: "12" },
@@ -19,77 +25,12 @@ export const WelcomePage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#FFF5F0] to-[#FDF0EB] px-8 py-10 font-sans">
-      <header className="flex justify-between items-center mb-16">
-        <div className="font-bold text-xl text-[#8C3A27]">RoomieSmart</div>
-        <nav className="flex gap-6 text-sm font-medium text-gray-600">
-          <button
-            onClick={() => navigate("/matchmaking")}
-            className="hover:text-[#8C3A27] font-medium"
-          >
-            Find Roomies
-          </button>
-          <button
-            onClick={() => navigate("/explorar")}
-            className="hover:text-[#8C3A27] font-medium"
-          >
-            Explore Spaces
-          </button>
-          <button
-            onClick={() => navigate("/publish-department")}
-            className="hover:text-[#8C3A27] font-medium"
-          >
-            Post Space
-          </button>
-          <button
-            onClick={() => navigate("/mis-publicaciones")}
-            className="hover:text-[#8C3A27] font-medium"
-          >
-            My Spaces
-          </button>
-          <button
-            onClick={() => navigate("/solicitudes")}
-            className="hover:text-[#8C3A27] font-medium"
-          >
-            Requests
-          </button>
-          <button
-            onClick={() => navigate("/mensajes")}
-            className="hover:text-[#8C3A27] font-medium"
-          >
-            Messages
-          </button>
-          
-          <button
-            onClick={() => navigate("/finanzas")}
-            className="hover:text-[#8C3A27] font-medium transition-colors"
-          >
-            Finance
-          </button>
-        </nav>
-        <div className="flex items-center gap-3">
-          <NotificationBell />
-          <div className="text-right">
-            <p className="text-sm font-bold">
-              {firstName} {lastName}
-            </p>
-            <p className="text-xs text-gray-500">Universidad Central</p>
-          </div>
-          <button
-            onClick={() => navigate("/perfil")}
-            title="Editar mi perfil"
-            className="w-10 h-10 bg-gray-300 rounded-full overflow-hidden flex items-center justify-center ring-2 ring-transparent hover:ring-[#8C3A27] transition"
-          >
-            <img
-              src={
-                user?.picture ||
-                `https://api.dicebear.com/7.x/avataaars/svg?seed=${firstName}`
-              }
-              alt="Avatar"
-              className="w-full h-full object-cover"
-            />
-          </button>
-        </div>
-      </header>
+      <Header
+        userName={`${firstName} ${lastName}`.trim()}
+        userSubtitle="Universidad Central"
+        avatarUrl={user?.picture || undefined}
+        onLogout={handleLogout}
+      />
 
       <div className="mb-10 max-w-2xl">
         <h1 className="text-5xl font-extrabold text-gray-900 mb-4">
