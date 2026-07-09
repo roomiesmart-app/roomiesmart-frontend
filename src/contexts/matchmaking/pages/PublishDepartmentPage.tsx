@@ -22,7 +22,7 @@ const roomTypes = [
 // Estos UUIDs DEBEN existir en la tabla `cities` de Supabase.
 // Verificado contra la BD real el 2026-07-05.
 const cityOptions = [
-  { id: "edd2c2ec-d569-4572-84d5-45911d1b0939", label: "Quito" },
+  { id: "45fe5500-38ec-42d7-b524-a605cf148205", label: "Quito" },
   { id: "22222222-2222-2222-2222-222222222222", label: "Guayaquil" },
   { id: "33333333-3333-3333-3333-333333333333", label: "Cuenca" },
 ];
