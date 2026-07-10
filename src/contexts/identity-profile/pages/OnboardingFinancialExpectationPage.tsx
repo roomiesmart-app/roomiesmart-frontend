@@ -1,35 +1,23 @@
-import { useOnboarding } from '../context/OnboardingContext';
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+import { useKindeAuth } from '@kinde-oss/kinde-auth-react';
+import { useOnboarding } from '../context/OnboardingContext';
 import { ONBOARDING_ROUTES } from '../../../app/routes/constant';
 import { validateFinancial } from '../validators/FinancialValidator';
 import type { FinancialValidationErrors } from '../models/ValidationErrors';
 import { hasErrors } from '../../../shared/utils/validationHelper';
-import { useRegister } from '../../../hooks/useOnboardingMutation';
+import { useSaveOnboardingProfile } from '../../../hooks/useOnboardingMutation';
+import { ROOM_TYPE_OPTIONS, EXPENSE_MANAGEMENT_OPTIONS, SHARED_ITEMS_OPTIONS } from '../constants/financialOptions';
 
 export default function FinancialExpectationsOnboarding() {
+  const { user } = useKindeAuth();
   const { formData, updateFormData } = useOnboarding();
   const { financial } = formData;
   const navigate = useNavigate();
   const [errors, setErrors] = useState<FinancialValidationErrors>({});
   const [backendError, setBackendError] = useState<string | null>(null);
 
-  const { mutate: register, isPending } = useRegister();
-
-  useEffect(() => {
-    console.log("Final Full Data to be sent to Backend:", formData);
-  }, [formData]);
-
-  const sharedItemsOptions = [
-    'Nevera', 'Cafetera', 'Televisión', 'Productos limpieza', 
-    'Lavadora', 'Microondas', 'Vajilla', 'Consola de juegos'
-  ];
-
-  const expenseManagementOptions = [
-    { title: 'Fondo Común', desc: 'Aportamos una cantidad fija cada mes para todo el departamento.' },
-    { title: 'División Digital', desc: 'Cada uno paga lo suyo y ajustamos cuentas en la app.' },
-    { title: 'Todo Individual', desc: 'Cada roomie se encarga de sus propias compras exclusivamente.' }
-  ];
+  const { mutate: saveOnboardingProfile, isPending } = useSaveOnboardingProfile();
 
   const handleBudgetChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newMax = parseInt(e.target.value, 10);
@@ -52,53 +40,58 @@ export default function FinancialExpectationsOnboarding() {
   const handleFinish = () => {
     setBackendError(null);
     const validationErrors = validateFinancial(financial);
-    
+
     if (hasErrors(validationErrors)) {
       setErrors(validationErrors);
       return;
     }
 
-    const formattedData = {
-      name: formData.name,
-      email: formData.email,
-      password: formData.password,
-      preferences: {
-        profile: {
-          age: Number(formData.age),
-          gender: formData.gender,
-          birthCity: formData.birthCity,
-          career: formData.career,
-          semester: formData.semester
+    if (!user?.id || !user?.email) {
+      setBackendError('No pudimos verificar tu sesión. Por favor, vuelve a iniciar sesión.');
+      return;
+    }
+
+    const payload = {
+      identity: {
+        email: user.email,
+        externalId: user.id
+      },
+      profile: {
+        fullName: formData.name,
+        age: Number(formData.age) || 0,
+        gender: formData.gender || '',
+        birthCity: formData.birthCity || '',
+        career: formData.career || '',
+        currentSemester: Number(formData.semester) || 0
+      },
+      lifestyle: {
+        cleaningFrequency: formData.lifestyle?.cleaningFrequency || '',
+        isEarlyBird: formData.lifestyle?.isEarlyBird || false,
+        useCommonAreasAtNight: formData.lifestyle?.useCommonAreasAtNight || false,
+        sharedTasks: formData.lifestyle?.sharedTasks || []
+      },
+      social: {
+        hobbies: formData.social?.hobbies || [],
+        musicGenres: formData.social?.musicGenres || [],
+        petPreference: formData.social?.petPreference || '',
+        smokingPreference: formData.social?.smokingPreference || '',
+        socialLevel: formData.social?.socialLevel || ''
+      },
+      financial: {
+        budgetRange: {
+          min: Number(financial.budgetRange.min) || 150,
+          max: Number(financial.budgetRange.max) || 300
         },
-        lifestyle: {
-          cleaningFrequency: formData.lifestyle.cleaningFrequency,
-          isEarlyBird: formData.lifestyle.isEarlyBird,
-          useCommonAreasAtNight: formData.lifestyle.useCommonAreasAtNight,
-          sharedTasks: formData.lifestyle.sharedTasks || []
-        },
-        social: {
-          hobbies: formData.social.hobbies || [],
-          musicGenres: formData.social.musicGenres || [],
-          petPreference: formData.social.petPreference,
-          smokingPreference: formData.social.smokingPreference,
-          socialLevel: formData.social.socialLevel
-        },
-        financial: {
-          budgetRange: {
-            min: Number(formData.financial.budgetRange.min),
-            max: Number(formData.financial.budgetRange.max)
-          },
-          roomType: formData.financial.roomType,
-          preferredCommonAreas: formData.financial.preferredCommonAreas || [],
-          expenseManagement: formData.financial.expenseManagement,
-          sharedItems: formData.financial.sharedItems || []
-        }
+        roomType: financial.roomType || 'privada',
+        preferredCommonAreas: financial.preferredCommonAreas || [],
+        expenseManagement: financial.expenseManagement || 'division-digital',
+        sharedItems: financial.sharedItems || []
       }
     };
 
-    register(formattedData, {
+    saveOnboardingProfile(payload, {
       onSuccess: () => {
-        navigate('/login');
+        navigate('/dashboard', { replace: true });
       },
       onError: (error: any) => {
         const status = error.response?.status;
@@ -106,10 +99,12 @@ export default function FinancialExpectationsOnboarding() {
 
         if (!error.response) {
           setBackendError('No hay conexión con el servidor. Revisa tu internet.');
-        } else if (status === 409 || serverMessage.toLowerCase().includes('exists')) {
+        } else if (serverMessage.toLowerCase().includes('registrado')) {
           setBackendError('Este correo ya está registrado. Por favor, intenta iniciar sesión.');
+        } else if (status === 403) {
+          setBackendError(serverMessage || 'No tienes permiso para completar este registro.');
         } else if (status === 400) {
-          setBackendError('Hay un problema con los datos enviados. Revisa que todo esté correcto.');
+          setBackendError(serverMessage || 'Hay un problema con los datos enviados. Revisa que todo esté correcto.');
         } else if (status === 500) {
           setBackendError('Nuestros servidores están teniendo problemas. Inténtalo en unos minutos.');
         } else {
@@ -129,14 +124,14 @@ export default function FinancialExpectationsOnboarding() {
         <div className="space-y-8">
           <section className="bg-white p-8 rounded-[32px] shadow-sm border border-gray-100">
             <h2 className="font-bold mb-6">Presupuesto Mensual ($150 - $300)</h2>
-            <input 
-              type="range" 
-              min="150" 
-              max="300" 
-              step="10" 
-              value={financial.budgetRange.max} 
-              onChange={handleBudgetChange} 
-              className="w-full h-2 bg-gray-200 rounded-lg accent-[#A3513D]" 
+            <input
+              type="range"
+              min="150"
+              max="300"
+              step="10"
+              value={financial.budgetRange.max}
+              onChange={handleBudgetChange}
+              className="w-full h-2 bg-gray-200 rounded-lg accent-[#A3513D]"
             />
             <div className="flex justify-between mt-2 font-bold text-[#A3513D]">
               <span>$150</span>
@@ -147,11 +142,11 @@ export default function FinancialExpectationsOnboarding() {
 
           <section className="bg-white p-8 rounded-[32px] shadow-sm border border-gray-100">
             <h2 className="font-bold mb-6">Gestión de Gastos</h2>
-            {expenseManagementOptions.map((item) => (
-              <button 
-                key={item.title} 
-                onClick={() => updateFormData({ financial: { ...financial, expenseManagement: item.title } })} 
-                className={`w-full p-4 border rounded-2xl mb-3 text-left ${financial.expenseManagement === item.title ? 'border-[#A3513D] bg-[#FFF5F3]' : 'border-gray-100'}`}
+            {EXPENSE_MANAGEMENT_OPTIONS.map((item) => (
+              <button
+                key={item.value}
+                onClick={() => updateFormData({ financial: { ...financial, expenseManagement: item.value } })}
+                className={`w-full p-4 border rounded-2xl mb-3 text-left ${financial.expenseManagement === item.value ? 'border-[#A3513D] bg-[#FFF5F3]' : 'border-gray-100'}`}
               >
                 <p className="font-bold">{item.title}</p>
                 <p className="text-xs text-neutral">{item.desc}</p>
@@ -159,10 +154,10 @@ export default function FinancialExpectationsOnboarding() {
             ))}
             <h3 className="font-bold mt-6 mb-4">Objetos compartidos</h3>
             <div className="flex flex-wrap gap-2">
-              {sharedItemsOptions.map((obj) => (
-                <button 
-                  key={obj} 
-                  onClick={() => toggleSharedItem(obj)} 
+              {SHARED_ITEMS_OPTIONS.map((obj) => (
+                <button
+                  key={obj}
+                  onClick={() => toggleSharedItem(obj)}
                   className={`px-4 py-2 rounded-full border ${financial.sharedItems.includes(obj) ? 'bg-[#A3513D] text-white' : 'bg-white border-gray-200'}`}
                 >
                   {obj}
@@ -177,13 +172,13 @@ export default function FinancialExpectationsOnboarding() {
           <div className="bg-white p-8 rounded-[32px] shadow-sm border border-gray-100">
             <h2 className="font-bold mb-6">Preferencia de Habitación</h2>
             <div className="grid grid-cols-2 gap-4">
-              {['Privada', 'Compartida'].map((type) => (
-                <button 
-                  key={type} 
-                  onClick={() => updateFormData({ financial: { ...financial, roomType: type } })} 
-                  className={`p-6 rounded-2xl border ${financial.roomType === type ? 'border-[#A3513D] bg-[#FFF5F3]' : 'border-gray-100'}`}
+              {ROOM_TYPE_OPTIONS.map((type) => (
+                <button
+                  key={type.value}
+                  onClick={() => updateFormData({ financial: { ...financial, roomType: type.value } })}
+                  className={`p-6 rounded-2xl border ${financial.roomType === type.value ? 'border-[#A3513D] bg-[#FFF5F3]' : 'border-gray-100'}`}
                 >
-                  <p className="font-bold">{type}</p>
+                  <p className="font-bold">{type.label}</p>
                 </button>
               ))}
             </div>
@@ -210,8 +205,8 @@ export default function FinancialExpectationsOnboarding() {
           {hasErrors(errors) && (
             <span className="text-red-500 text-xs font-bold mb-2 mr-2">⚠️ {Object.values(errors)[0]}</span>
           )}
-          <button 
-            onClick={handleFinish} 
+          <button
+            onClick={handleFinish}
             disabled={isPending}
             className="bg-[#A3513D] text-white px-10 py-3 rounded-full font-bold shadow-lg disabled:opacity-50"
           >

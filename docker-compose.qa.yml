@@ -8,7 +8,8 @@ services:
       - "80:80"
     restart: always
 
-  api-dev:
+  # OJO: el servicio DEBE llamarse "api" — nginx.conf hace proxy_pass a http://api:3000
+  api:
     container_name: roomiesmart_api_qa
     image: paulchapi/roomiesmart-backend:qa
     ports:
