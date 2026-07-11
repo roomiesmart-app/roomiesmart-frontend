@@ -11,7 +11,7 @@ export const WelcomePage: React.FC = () => {
   const lastName = user?.familyName || "";
 
   const handleLogout = () => {
-    // Limpia la sesión local antes de cerrar sesión en Kinde
+
     window.localStorage.removeItem("roomieSmartState");
     logout();
   };
@@ -93,7 +93,7 @@ export const WelcomePage: React.FC = () => {
               <span className="text-sm font-semibold">Servicios</span>
               <span className="text-red-500 font-bold">-$12.40</span>
             </div>
-            
+
             <button
               onClick={() => navigate("/finanzas")}
               className="w-full bg-[#8C3A27] text-white py-4 rounded-2xl font-semibold mt-4 hover:bg-[#702d1f] transition-colors"

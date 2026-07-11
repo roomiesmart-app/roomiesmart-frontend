@@ -4,8 +4,8 @@ export interface Transaction {
   paidBy: string;
   sharedWithCount: number;
   totalAmount: number;
-  yourShare?: number; 
-  owedToYou?: number; 
+  yourShare?: number;
+  owedToYou?: number;
   type: 'shopping' | 'utilities' | 'cleaning';
 }
 

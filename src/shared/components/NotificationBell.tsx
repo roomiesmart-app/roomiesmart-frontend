@@ -25,7 +25,7 @@ const iconForType: Record<AppNotification["type"], string> = {
 export const NotificationBell: React.FC = () => {
   const navigate = useNavigate();
   const { ownerId } = useRoomie();
-  // Estado global (Zustand): la lista y el contador viven en el store
+
   const notifications = useNotificationStore((state) => state.notifications);
   const setAll = useNotificationStore((state) => state.setAll);
   const push = useNotificationStore((state) => state.push);
@@ -33,10 +33,9 @@ export const NotificationBell: React.FC = () => {
   const unreadCount = useNotificationStore(selectUnreadCount);
   const [open, setOpen] = useState(false);
 
-
   useEffect(() => {
     if (!ownerId) {
-      // Sin UUID de BD no hay filtro válido: revisar que /me esté respondiendo
+
       console.warn("🔔 NotificationBell: sin ownerId, no se suscribe a Realtime.");
       return;
     }
@@ -79,9 +78,7 @@ export const NotificationBell: React.FC = () => {
         },
       )
       .subscribe((status, err) => {
-        // Diagnóstico: sin esto los fallos de suscripción son invisibles.
-        // SUBSCRIBED = ok; CHANNEL_ERROR/TIMED_OUT = revisar que la tabla
-        // esté en la publicación supabase_realtime (migración 006).
+
         if (status === "SUBSCRIBED") {
           console.log(`🔔 Realtime suscrito para user_id=${ownerId}`);
         } else {

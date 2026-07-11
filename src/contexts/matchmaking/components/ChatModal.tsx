@@ -32,14 +32,12 @@ export const ChatModal: React.FC<ChatModalProps> = ({
   const bottomRef = useRef<HTMLDivElement | null>(null);
   const { socket, connected } = useChatSocket();
 
-  // Agrega un mensaje evitando duplicados (ack + broadcast del room)
   const appendMessage = useCallback((message: ChatMessage) => {
     setMessages((prev) =>
       prev.some((m) => m.id === message.id) ? prev : [...prev, message],
     );
   }, []);
 
-  // 1) POST /conversations: inicia o recupera la conversación con el dueño
   useEffect(() => {
     let cancelled = false;
 
@@ -66,8 +64,6 @@ export const ChatModal: React.FC<ChatModalProps> = ({
     };
   }, [currentUserId, targetUserId]);
 
-  // 2) GET /conversations/:id/messages: historial inicial (una sola vez;
-  //    el tiempo real llega por Socket.io, ya no hay polling)
   const loadMessages = useCallback(async () => {
     if (!conversationId) return;
     try {
@@ -77,7 +73,7 @@ export const ChatModal: React.FC<ChatModalProps> = ({
       const data: ChatMessage[] = Array.isArray(response.data)
         ? response.data
         : [];
-      // El backend entrega del más reciente al más antiguo
+
       setMessages([...data].reverse());
       setError("");
     } catch {
@@ -92,7 +88,6 @@ export const ChatModal: React.FC<ChatModalProps> = ({
     loadMessages();
   }, [conversationId, loadMessages]);
 
-  // 2b) Tiempo real: unirse al room de la conversación y escuchar mensajes
   useEffect(() => {
     if (!conversationId) return;
 
@@ -110,8 +105,6 @@ export const ChatModal: React.FC<ChatModalProps> = ({
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages.length]);
 
-  // 3) Enviar mensaje: Socket.io con ack; si el socket está caído,
-  //    fallback al POST REST original.
   const sendViaSocket = (content: string) =>
     new Promise<ChatMessage>((resolve, reject) => {
       const timeout = window.setTimeout(
@@ -141,7 +134,7 @@ export const ChatModal: React.FC<ChatModalProps> = ({
       if (connected) {
         message = await sendViaSocket(content);
       } else {
-        // Fallback REST: el chat sigue funcionando sin WebSocket
+
         const response = await api.post(
           `/api/v1/roomies/conversations/${conversationId}/messages`,
           { senderId: currentUserId, content },
