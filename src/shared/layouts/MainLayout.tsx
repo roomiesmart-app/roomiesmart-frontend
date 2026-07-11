@@ -28,10 +28,10 @@ export const MainLayout: React.FC<Props> = ({ children }) => {
           </div>
 
           <div className="flex items-center gap-3 px-4 py-3 mb-8 bg-[#FDF0EB] rounded-2xl">
-            <img 
-              src={user?.picture || `https://api.dicebear.com/7.x/avataaars/svg?seed=${fullName}`} 
-              alt="Avatar" 
-              className="w-10 h-10 rounded-full bg-white object-cover" 
+            <img
+              src={user?.picture || `https://api.dicebear.com/7.x/avataaars/svg?seed=${fullName}`}
+              alt="Avatar"
+              className="w-10 h-10 rounded-full bg-white object-cover"
             />
             <div className="overflow-hidden">
               <p className="text-sm font-bold truncate">{fullName}</p>

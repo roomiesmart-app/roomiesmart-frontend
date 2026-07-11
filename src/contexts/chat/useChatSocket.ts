@@ -1,8 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { io, Socket } from "socket.io-client";
 
-// Conexión singleton: una sola instancia de Socket.io para toda la app.
-// Va al mismo dominio del API (nginx enruta /socket.io/ al backend:3000).
 let sharedSocket: Socket | null = null;
 
 export function getChatSocket(): Socket {
@@ -10,8 +8,7 @@ export function getChatSocket(): Socket {
     const baseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
     sharedSocket = io(baseUrl, {
       path: "/socket.io",
-      // websocket primero; polling como red de seguridad si el proxy
-      // no soporta upgrade (así el chat nunca muere del todo)
+
       transports: ["websocket", "polling"],
       reconnection: true,
       reconnectionAttempts: 10,
@@ -21,10 +18,6 @@ export function getChatSocket(): Socket {
   return sharedSocket;
 }
 
-/**
- * Hook de acceso al socket del chat.
- * Devuelve la instancia compartida y su estado de conexión reactivo.
- */
 export function useChatSocket() {
   const socketRef = useRef<Socket>(getChatSocket());
   const [connected, setConnected] = useState(socketRef.current.connected);

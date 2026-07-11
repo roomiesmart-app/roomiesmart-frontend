@@ -6,8 +6,7 @@ const meta = {
   title: "RoomieSmart/Header",
   component: Header,
   tags: ["autodocs"],
-  // El Header usa useNavigate: necesita un Router de mentira.
-  // showBell=false porque la campanita depende de Supabase Realtime.
+
   decorators: [
     (Story) => (
       <MemoryRouter>

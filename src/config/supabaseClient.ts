@@ -5,8 +5,6 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 let client: SupabaseClient | null = null;
 
-// Inicialización perezosa: si faltan las variables en el build,
-// la app sigue funcionando y el error solo aparece al usar Supabase.
 export function getSupabase(): SupabaseClient {
   if (!supabaseUrl || !supabaseAnonKey) {
     throw new Error(

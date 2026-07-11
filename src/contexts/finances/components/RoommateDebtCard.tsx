@@ -19,7 +19,7 @@ export const RoommateDebtCard: React.FC<Props> = ({ data }) => {
           </p>
         </div>
       </div>
-      
+
       {isOwed ? (
         <div className="flex gap-2">
           <button className="flex-1 border border-gray-200 text-gray-700 py-2 rounded-full text-sm font-bold hover:bg-gray-50 transition-colors">Recordar</button>

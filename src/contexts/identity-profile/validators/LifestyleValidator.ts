@@ -1,26 +1,15 @@
-import type { LifestyleValidationErrors } from '../models/ValidationErrors';
+import type { LifestyleValidationErrors } from "../models/ValidationErrors";
+import {
+  lifestyleSchema,
+  zodIssuesToErrorMap,
+  type LifestyleValues,
+} from "../schemas/onboarding.schema";
 
-export interface LifestyleData {
-  cleaningFrequency: string;
-  isEarlyBird: boolean;
-  useCommonAreasAtNight: boolean;
-  sharedTasks: string[];
-}
+export type LifestyleData = LifestyleValues;
 
-export const validateLifestyle = (lifestyle: LifestyleData): LifestyleValidationErrors => {
-  const errors: LifestyleValidationErrors = {};
-
-  if (!lifestyle.cleaningFrequency || lifestyle.cleaningFrequency.trim() === '') {
-    errors.cleaningFrequency = 'Debes seleccionar una frecuencia de limpieza.';
-  }
-
-  if (!lifestyle.isEarlyBird && !lifestyle.useCommonAreasAtNight) {
-    errors.rhythm = 'Selecciona al menos un ritmo de vida universitario.';
-  }
-
-  if (!lifestyle.sharedTasks || lifestyle.sharedTasks.length === 0) {
-    errors.sharedTasks = 'Debes seleccionar al menos una tarea compartida.';
-  }
-
-  return errors;
-};
+export const validateLifestyle = (
+  lifestyle: LifestyleData,
+): LifestyleValidationErrors =>
+  zodIssuesToErrorMap<LifestyleValidationErrors>(
+    lifestyleSchema.safeParse(lifestyle),
+  );

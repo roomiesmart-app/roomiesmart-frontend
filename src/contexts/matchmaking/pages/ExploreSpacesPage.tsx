@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import { useRoomie } from "../../roomie/RoomieContext";
 import { useDebounce } from "../../../hooks/useDebounce";
 import { listSpaces, type PublishedSpace } from "../services/PublishService";
@@ -9,19 +10,50 @@ import { ChatModal } from "../components/ChatModal";
 const FALLBACK_IMAGE =
   "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&q=80&w=600";
 
+const SNAPSHOT_KEY = "roomieSmartSpacesSnapshot";
+
+function readSpacesSnapshot(): PublishedSpace[] | undefined {
+  try {
+    const raw = window.localStorage.getItem(SNAPSHOT_KEY);
+    return raw ? (JSON.parse(raw) as PublishedSpace[]) : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 export const ExploreSpacesPage: React.FC = () => {
   const navigate = useNavigate();
   const { ownerId } = useRoomie();
-  const [spaces, setSpaces] = useState<PublishedSpace[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
   const [chatTarget, setChatTarget] = useState<PublishedSpace | null>(null);
+
+  const {
+    data: spaces = [],
+    isLoading: loading,
+    isError,
+  } = useQuery({
+    queryKey: ["spaces", "available"],
+    queryFn: listSpaces,
+    staleTime: 60_000,
+    placeholderData: readSpacesSnapshot,
+  });
+  const error = isError
+    ? "No pudimos cargar los espacios. Intenta de nuevo."
+    : "";
+
+  useEffect(() => {
+    if (spaces.length === 0) return;
+    try {
+      window.localStorage.setItem(SNAPSHOT_KEY, JSON.stringify(spaces));
+    } catch {
+
+    }
+  }, [spaces]);
   const [joinStatus, setJoinStatus] = useState<
     Record<string, "sending" | "sent" | undefined>
   >({});
   const [joinError, setJoinError] = useState("");
   const [query, setQuery] = useState("");
-  // El filtro solo se recalcula 300ms después de la última tecla
+
   const debouncedQuery = useDebounce(query, 300);
 
   const filteredSpaces = useMemo(() => {
@@ -47,7 +79,7 @@ export const ExploreSpacesPage: React.FC = () => {
     } catch (err: any) {
       const message =
         err?.response?.data?.message || "No se pudo enviar la solicitud.";
-      
+
       if (message.includes("pendiente")) {
         setJoinStatus((prev) => ({ ...prev, [space.id]: "sent" }));
       } else {
@@ -56,29 +88,6 @@ export const ExploreSpacesPage: React.FC = () => {
       setJoinError(message);
     }
   };
-
-  useEffect(() => {
-    let cancelled = false;
-
-    const fetchSpaces = async () => {
-      try {
-        const data = await listSpaces();
-        if (!cancelled) setSpaces(data);
-      } catch (err) {
-        console.error(err);
-        if (!cancelled) {
-          setError("No pudimos cargar los espacios. Intenta de nuevo.");
-        }
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    };
-
-    fetchSpaces();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
 
   return (
     <div className="min-h-screen bg-[#FDF7F5] px-6 py-8 sm:px-10 sm:py-12">

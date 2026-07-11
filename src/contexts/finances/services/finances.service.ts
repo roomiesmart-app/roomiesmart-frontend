@@ -27,8 +27,8 @@ export const financesService = {
 
       const TOTAL_ROOMIES = Math.max(totalRoomies, 1);
 
-      // El cálculo pesado (reparto y balances) corre en WebAssembly
-      // (assembly/finances.ts), con fallback JS transparente.
+
+
       const { houseTotal, youOwe, owedToYou, shares } =
         await computeFinanceSummary(
           rawData.map((expense) => ({
@@ -82,7 +82,7 @@ export const financesService = {
 
       const response = await api.post('/api/expenses', payload);
       return response.data;
-      
+
     } catch (error) {
       throw error;
     }
