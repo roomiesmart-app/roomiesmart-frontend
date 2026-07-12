@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -20,6 +20,7 @@ import {
   stepFields,
   type PublishSpaceFormValues,
 } from "../schemas/publishSpace.schema";
+import { FieldError } from "../../../shared/components/ui/FieldError";
 
 const roomTypes = [
   "Departamento completo",
@@ -27,11 +28,11 @@ const roomTypes = [
   "Habitación compartida",
 ];
 
+// Por ahora la publicación de espacios solo está disponible en Quito
+const FIXED_CITY_NAME = "Quito";
+
 const inputClass =
   "rounded-3xl border border-[#E5D1C6] bg-[#FDF8F6] p-4 focus:outline-none focus:ring-2 focus:ring-[#8C3A27]/30";
-
-const FieldError = ({ message }: { message?: string }) =>
-  message ? <span className="text-xs text-red-600">{message}</span> : null;
 
 export const PublishDepartmentPage: React.FC = () => {
   const [step, setStep] = useState(1);
@@ -83,6 +84,17 @@ export const PublishDepartmentPage: React.FC = () => {
   const selectedAreas = watch("commonAreas");
   const selectedAmenities = watch("amenities");
   const watchedValues = watch();
+
+  const fixedCity = cities.find(
+    (city) => city.name.trim().toLowerCase() === FIXED_CITY_NAME.toLowerCase(),
+  );
+
+  // La ciudad está fija en Quito: se asigna sola cuando llega el catálogo
+  useEffect(() => {
+    if (fixedCity) {
+      setValue("cityId", fixedCity.id, { shouldValidate: true });
+    }
+  }, [fixedCity, setValue]);
 
   const handlePhotos = (files: FileList | null) => {
     if (!files) return;
@@ -320,19 +332,25 @@ export const PublishDepartmentPage: React.FC = () => {
                     </label>
                     <label className="flex flex-col gap-2 text-sm text-[#5C5C5C]">
                       Ciudad
-                      <select {...register("cityId")} className={inputClass}>
-                        <option value="">
-                          {cities.length === 0
+                      <input
+                        value={
+                          cities.length === 0
                             ? "Cargando ciudades..."
-                            : "Selecciona ciudad"}
-                        </option>
-                        {cities.map((city) => (
-                          <option key={city.id} value={city.id}>
-                            {city.name}
-                          </option>
-                        ))}
-                      </select>
+                            : FIXED_CITY_NAME
+                        }
+                        disabled
+                        readOnly
+                        className={`${inputClass} cursor-not-allowed opacity-70`}
+                      />
+                      <span className="text-xs text-gray-400">
+                        Por ahora solo publicamos espacios en {FIXED_CITY_NAME}.
+                      </span>
                       <FieldError message={errors.cityId?.message} />
+                      {cities.length > 0 && !fixedCity && (
+                        <FieldError
+                          message={`La ciudad ${FIXED_CITY_NAME} no está disponible en el catálogo. Contacta al administrador.`}
+                        />
+                      )}
                       {citiesError && (
                         <FieldError message="No se pudieron cargar las ciudades. Recarga la página." />
                       )}
