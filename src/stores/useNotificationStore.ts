@@ -33,6 +33,5 @@ export const useNotificationStore = create<NotificationState>((set) => ({
   clear: () => set({ notifications: [] }),
 }));
 
-/** Selector para el contador global de no leídas (badge de la campanita) */
 export const selectUnreadCount = (state: NotificationState) =>
   state.notifications.filter((n) => !n.is_read).length;

@@ -28,10 +28,10 @@ export const MainLayout: React.FC<Props> = ({ children }) => {
           </div>
 
           <div className="flex items-center gap-3 px-4 py-3 mb-8 bg-[#FDF0EB] rounded-2xl">
-            <img 
-              src={user?.picture || `https://api.dicebear.com/7.x/avataaars/svg?seed=${fullName}`} 
-              alt="Avatar" 
-              className="w-10 h-10 rounded-full bg-white object-cover" 
+            <img
+              src={user?.picture || `https://api.dicebear.com/7.x/avataaars/svg?seed=${fullName}`}
+              alt="Avatar"
+              className="w-10 h-10 rounded-full bg-white object-cover"
             />
             <div className="overflow-hidden">
               <p className="text-sm font-bold truncate">{fullName}</p>
@@ -49,14 +49,20 @@ export const MainLayout: React.FC<Props> = ({ children }) => {
             <button onClick={() => navigate('/finanzas')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors font-medium ${isActive('/finanzas') ? 'bg-[#8C3A27] text-white shadow-md' : 'text-gray-500 hover:text-[#8C3A27] hover:bg-[#FDF0EB]'}`}>
               <Receipt size={20} /> Finanzas
             </button>
-            <button className="w-full flex items-center gap-3 px-4 py-3 text-gray-500 hover:text-[#8C3A27] hover:bg-[#FDF0EB] rounded-xl transition-colors font-medium">
+            <button onClick={() => navigate('/mis-publicaciones')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors font-medium ${isActive('/mis-publicaciones') ? 'bg-[#8C3A27] text-white shadow-md' : 'text-gray-500 hover:text-[#8C3A27] hover:bg-[#FDF0EB]'}`}>
               <Home size={20} /> Mi Espacio
             </button>
           </nav>
         </div>
 
         <div>
-          <button className="w-full flex items-center justify-center gap-3 px-4 py-2 text-sm text-gray-500 hover:text-red-600 transition-colors" onClick={() => logout()}>
+          <button
+            className="w-full flex items-center justify-center gap-3 px-4 py-2 text-sm text-gray-500 hover:text-red-600 transition-colors"
+            onClick={() => {
+              window.localStorage.removeItem('roomieSmartState');
+              logout();
+            }}
+          >
             <LogOut size={18} /> Cerrar Sesión
           </button>
         </div>

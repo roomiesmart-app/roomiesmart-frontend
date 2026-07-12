@@ -1,7 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import api from "../services/api";
 import { useRoomie } from "../../roomie/RoomieContext";
+import {
+  profileSettingsSchema,
+  type ProfileSettingsValues,
+} from "../schemas/profileSettings.schema";
 
 interface ProfileSettings {
   userId: string;
@@ -15,18 +21,32 @@ interface ProfileSettings {
   preferredCommonAreas: string[];
 }
 
+const FieldError = ({ message }: { message?: string }) =>
+  message ? <span className="text-xs text-red-600">{message}</span> : null;
+
 export const ProfileSettingsPage: React.FC = () => {
   const navigate = useNavigate();
   const { ownerId } = useRoomie();
 
   const [profile, setProfile] = useState<ProfileSettings | null>(null);
-  const [isEarlyBird, setIsEarlyBird] = useState(true);
-  const [minBudget, setMinBudget] = useState("");
-  const [maxBudget, setMaxBudget] = useState("");
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState("");
+  const [apiError, setApiError] = useState("");
   const [success, setSuccess] = useState("");
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    watch,
+    setValue,
+    formState: { errors, isSubmitting },
+  } = useForm<ProfileSettingsValues>({
+    resolver: zodResolver(profileSettingsSchema),
+    mode: "onTouched",
+    defaultValues: { isEarlyBird: true, minBudget: "", maxBudget: "" },
+  });
+
+  const isEarlyBird = watch("isEarlyBird");
 
   useEffect(() => {
     if (!ownerId) return;
@@ -40,12 +60,14 @@ export const ProfileSettingsPage: React.FC = () => {
         if (cancelled) return;
         const data: ProfileSettings = response.data;
         setProfile(data);
-        setIsEarlyBird(data.isEarlyBird ?? true);
-        setMinBudget(data.minBudget != null ? String(data.minBudget) : "");
-        setMaxBudget(data.maxBudget != null ? String(data.maxBudget) : "");
+        reset({
+          isEarlyBird: data.isEarlyBird ?? true,
+          minBudget: data.minBudget != null ? String(data.minBudget) : "",
+          maxBudget: data.maxBudget != null ? String(data.maxBudget) : "",
+        });
       } catch (err) {
         console.error(err);
-        if (!cancelled) setError("No pudimos cargar tu perfil.");
+        if (!cancelled) setApiError("No pudimos cargar tu perfil.");
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -55,48 +77,26 @@ export const ProfileSettingsPage: React.FC = () => {
     return () => {
       cancelled = true;
     };
-  }, [ownerId]);
+  }, [ownerId, reset]);
 
-  const handleSave = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setError("");
+  const onSubmit = async (values: ProfileSettingsValues) => {
+    setApiError("");
     setSuccess("");
-
-    const min = minBudget ? Number(minBudget) : undefined;
-    const max = maxBudget ? Number(maxBudget) : undefined;
-
-    
-    if (min !== undefined && min < 50) {
-      setError("El presupuesto mínimo no puede ser menor a $50.");
-      return;
-    }
-    if (max !== undefined && max > 2000) {
-      setError("El presupuesto máximo no puede superar los $2000.");
-      return;
-    }
-    if (min !== undefined && max !== undefined && min > max) {
-      setError("El presupuesto mínimo no puede ser mayor al máximo.");
-      return;
-    }
-
-    setSaving(true);
     try {
       await api.post("/api/profiles", {
         userId: ownerId,
-        isEarlyBird,
-        ...(min !== undefined ? { minBudget: min } : {}),
-        ...(max !== undefined ? { maxBudget: max } : {}),
+        isEarlyBird: values.isEarlyBird,
+        ...(values.minBudget !== "" ? { minBudget: Number(values.minBudget) } : {}),
+        ...(values.maxBudget !== "" ? { maxBudget: Number(values.maxBudget) } : {}),
       });
       setSuccess("Perfil guardado correctamente. ✓");
     } catch (err: any) {
       const messages = err?.response?.data?.messages;
-      setError(
+      setApiError(
         (Array.isArray(messages) ? messages.join(" ") : null) ||
           err?.response?.data?.message ||
           "No se pudo guardar el perfil.",
       );
-    } finally {
-      setSaving(false);
     }
   };
 
@@ -126,10 +126,10 @@ export const ProfileSettingsPage: React.FC = () => {
         {loading ? (
           <p className="text-center text-gray-500">Cargando tu perfil...</p>
         ) : (
-          <form onSubmit={handleSave} className="space-y-6">
-            {error && (
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+            {apiError && (
               <div className="rounded-3xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-                {error}
+                {apiError}
               </div>
             )}
             {success && (
@@ -145,7 +145,7 @@ export const ProfileSettingsPage: React.FC = () => {
               <div className="flex gap-3">
                 <button
                   type="button"
-                  onClick={() => setIsEarlyBird(true)}
+                  onClick={() => setValue("isEarlyBird", true)}
                   className={`flex-1 rounded-2xl border p-4 text-sm font-semibold transition ${
                     isEarlyBird
                       ? "border-[#8C3A27] bg-[#8C3A27] text-white"
@@ -156,7 +156,7 @@ export const ProfileSettingsPage: React.FC = () => {
                 </button>
                 <button
                   type="button"
-                  onClick={() => setIsEarlyBird(false)}
+                  onClick={() => setValue("isEarlyBird", false)}
                   className={`flex-1 rounded-2xl border p-4 text-sm font-semibold transition ${
                     !isEarlyBird
                       ? "border-[#8C3A27] bg-[#8C3A27] text-white"
@@ -177,21 +177,21 @@ export const ProfileSettingsPage: React.FC = () => {
                   Mínimo (desde $50)
                   <input
                     type="number"
-                    value={minBudget}
-                    onChange={(e) => setMinBudget(e.target.value)}
+                    {...register("minBudget")}
                     placeholder="80"
                     className="rounded-2xl border border-[#E5D1C6] bg-[#FDF8F6] p-3 focus:outline-none focus:ring-2 focus:ring-[#8C3A27]/30"
                   />
+                  <FieldError message={errors.minBudget?.message} />
                 </label>
                 <label className="flex flex-col gap-1 text-sm text-[#5C5C5C]">
                   Máximo (hasta $2000)
                   <input
                     type="number"
-                    value={maxBudget}
-                    onChange={(e) => setMaxBudget(e.target.value)}
+                    {...register("maxBudget")}
                     placeholder="300"
                     className="rounded-2xl border border-[#E5D1C6] bg-[#FDF8F6] p-3 focus:outline-none focus:ring-2 focus:ring-[#8C3A27]/30"
                   />
+                  <FieldError message={errors.maxBudget?.message} />
                 </label>
               </div>
             </section>
@@ -231,10 +231,10 @@ export const ProfileSettingsPage: React.FC = () => {
 
             <button
               type="submit"
-              disabled={saving || !ownerId}
+              disabled={isSubmitting || !ownerId}
               className="w-full rounded-full bg-[#8C3A27] py-4 font-bold text-white hover:bg-[#702d1f] transition disabled:opacity-50"
             >
-              {saving ? "Guardando..." : "Guardar cambios"}
+              {isSubmitting ? "Guardando..." : "Guardar cambios"}
             </button>
           </form>
         )}

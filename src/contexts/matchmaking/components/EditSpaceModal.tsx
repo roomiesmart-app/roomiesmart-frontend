@@ -1,22 +1,32 @@
 import React, { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useQuery } from "@tanstack/react-query";
 import {
   updateSpace,
   type PublishedSpace,
 } from "../services/PublishService";
+import {
+  fetchCommonAreas,
+  fetchAmenities,
+  CATALOG_QUERY_OPTIONS,
+} from "../services/CatalogService";
+import {
+  editSpaceSchema,
+  type EditSpaceFormValues,
+} from "../schemas/publishSpace.schema";
 
 const roomTypes = [
   "Departamento completo",
   "Habitación privada",
   "Habitación compartida",
 ];
-const commonAreaOptions = ["Sala", "Cocina", "Baño compartido", "Terraza"];
-const amenityOptions = [
-  "Wi-Fi",
-  "Lavadora",
-  "Aire acondicionado",
-  "Parqueadero",
-  "Muebles incluidos",
-];
+
+const fieldClass =
+  "rounded-2xl border border-[#E5D1C6] bg-[#FDF8F6] p-3 focus:outline-none focus:ring-2 focus:ring-[#8C3A27]/30";
+
+const FieldError = ({ message }: { message?: string }) =>
+  message ? <span className="text-xs text-red-600">{message}</span> : null;
 
 interface EditSpaceModalProps {
   space: PublishedSpace;
@@ -29,66 +39,76 @@ export const EditSpaceModal: React.FC<EditSpaceModalProps> = ({
   onClose,
   onSaved,
 }) => {
-  const [title, setTitle] = useState(space.title);
-  const [description, setDescription] = useState(space.description || "");
-  const [price, setPrice] = useState(String(space.monthly_price ?? ""));
-  const [address, setAddress] = useState(space.location_address || "");
-  const [neighborhood, setNeighborhood] = useState(space.neighborhood || "");
-  const [spaceType, setSpaceType] = useState(space.space_type || "");
-  const [areas, setAreas] = useState<string[]>(space.common_areas || []);
-  const [amenities, setAmenities] = useState<string[]>(space.amenities || []);
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState("");
+  const [apiError, setApiError] = useState("");
+
+  const { data: commonAreaOptions = [] } = useQuery({
+    queryKey: ["catalog", "common-areas"],
+    queryFn: fetchCommonAreas,
+    ...CATALOG_QUERY_OPTIONS,
+  });
+  const { data: amenityOptions = [] } = useQuery({
+    queryKey: ["catalog", "amenities"],
+    queryFn: fetchAmenities,
+    ...CATALOG_QUERY_OPTIONS,
+  });
+
+  const {
+    register,
+    handleSubmit,
+    watch,
+    setValue,
+    formState: { errors, isSubmitting },
+  } = useForm<EditSpaceFormValues>({
+    resolver: zodResolver(editSpaceSchema),
+    mode: "onTouched",
+    defaultValues: {
+      title: space.title,
+      description: space.description || "",
+      price: String(space.monthly_price ?? ""),
+      address: space.location_address || "",
+      neighborhood: space.neighborhood || "",
+      roomType: space.space_type || "",
+      commonAreas: space.common_areas || [],
+      amenities: space.amenities || [],
+    },
+  });
+
+  const areas = watch("commonAreas");
+  const amenities = watch("amenities");
 
   const toggle = (
-    list: string[],
-    setList: (v: string[]) => void,
+    field: "commonAreas" | "amenities",
+    current: string[],
     value: string,
   ) => {
-    setList(
-      list.includes(value)
-        ? list.filter((item) => item !== value)
-        : [...list, value],
+    setValue(
+      field,
+      current.includes(value)
+        ? current.filter((item) => item !== value)
+        : [...current, value],
+      { shouldValidate: true },
     );
   };
 
-  const handleSave = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setError("");
-
-    if (!title.trim() || !address.trim() || !neighborhood.trim()) {
-      setError("Título, dirección y barrio no pueden quedar vacíos.");
-      return;
-    }
-    if (!price || Number(price) <= 0) {
-      setError("El precio debe ser mayor a cero.");
-      return;
-    }
-    if (areas.length === 0 || amenities.length === 0) {
-      setError("Selecciona al menos un área común y una amenidad.");
-      return;
-    }
-
-    setSaving(true);
+  const onSubmit = async (values: EditSpaceFormValues) => {
+    setApiError("");
     try {
       const updated = await updateSpace(space.id, {
-        title,
-        description,
-        monthlyPrice: Number(price),
-        locationAddress: address,
-        neighborhood,
-        spaceType,
-        commonAreas: areas,
-        amenities,
+        title: values.title,
+        description: values.description,
+        monthlyPrice: Number(values.price),
+        locationAddress: values.address,
+        neighborhood: values.neighborhood,
+        spaceType: values.roomType,
+        commonAreas: values.commonAreas,
+        amenities: values.amenities,
       });
       onSaved(updated);
     } catch (err: any) {
-      setError(
+      setApiError(
         err?.response?.data?.message ||
           "No se pudo guardar la publicación. Intenta de nuevo.",
       );
-    } finally {
-      setSaving(false);
     }
   };
 
@@ -98,7 +118,7 @@ export const EditSpaceModal: React.FC<EditSpaceModalProps> = ({
       onClick={onClose}
     >
       <form
-        onSubmit={handleSave}
+        onSubmit={handleSubmit(onSubmit)}
         onClick={(e) => e.stopPropagation()}
         className="w-full max-w-2xl max-h-full overflow-y-auto rounded-[28px] bg-white p-8 shadow-2xl"
       >
@@ -120,49 +140,38 @@ export const EditSpaceModal: React.FC<EditSpaceModalProps> = ({
           </button>
         </div>
 
-        {error && (
+        {apiError && (
           <div className="mb-4 rounded-2xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
-            {error}
+            {apiError}
           </div>
         )}
 
         <div className="grid gap-4">
           <label className="flex flex-col gap-1 text-sm text-[#5C5C5C]">
             Título
-            <input
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              className="rounded-2xl border border-[#E5D1C6] bg-[#FDF8F6] p-3 focus:outline-none focus:ring-2 focus:ring-[#8C3A27]/30"
-            />
+            <input {...register("title")} className={fieldClass} />
+            <FieldError message={errors.title?.message} />
           </label>
 
           <label className="flex flex-col gap-1 text-sm text-[#5C5C5C]">
             Descripción
             <textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
+              {...register("description")}
               rows={4}
-              className="rounded-2xl border border-[#E5D1C6] bg-[#FDF8F6] p-3 focus:outline-none focus:ring-2 focus:ring-[#8C3A27]/30"
+              className={fieldClass}
             />
+            <FieldError message={errors.description?.message} />
           </label>
 
           <div className="grid gap-4 sm:grid-cols-2">
             <label className="flex flex-col gap-1 text-sm text-[#5C5C5C]">
               Precio por mes (USD)
-              <input
-                type="number"
-                value={price}
-                onChange={(e) => setPrice(e.target.value)}
-                className="rounded-2xl border border-[#E5D1C6] bg-[#FDF8F6] p-3 focus:outline-none focus:ring-2 focus:ring-[#8C3A27]/30"
-              />
+              <input type="number" {...register("price")} className={fieldClass} />
+              <FieldError message={errors.price?.message} />
             </label>
             <label className="flex flex-col gap-1 text-sm text-[#5C5C5C]">
               Tipo de espacio
-              <select
-                value={spaceType}
-                onChange={(e) => setSpaceType(e.target.value)}
-                className="rounded-2xl border border-[#E5D1C6] bg-[#FDF8F6] p-3 focus:outline-none focus:ring-2 focus:ring-[#8C3A27]/30"
-              >
+              <select {...register("roomType")} className={fieldClass}>
                 <option value="">Selecciona tipo</option>
                 {roomTypes.map((type) => (
                   <option key={type} value={type}>
@@ -170,25 +179,20 @@ export const EditSpaceModal: React.FC<EditSpaceModalProps> = ({
                   </option>
                 ))}
               </select>
+              <FieldError message={errors.roomType?.message} />
             </label>
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
             <label className="flex flex-col gap-1 text-sm text-[#5C5C5C]">
               Dirección
-              <input
-                value={address}
-                onChange={(e) => setAddress(e.target.value)}
-                className="rounded-2xl border border-[#E5D1C6] bg-[#FDF8F6] p-3 focus:outline-none focus:ring-2 focus:ring-[#8C3A27]/30"
-              />
+              <input {...register("address")} className={fieldClass} />
+              <FieldError message={errors.address?.message} />
             </label>
             <label className="flex flex-col gap-1 text-sm text-[#5C5C5C]">
               Barrio / Sector
-              <input
-                value={neighborhood}
-                onChange={(e) => setNeighborhood(e.target.value)}
-                className="rounded-2xl border border-[#E5D1C6] bg-[#FDF8F6] p-3 focus:outline-none focus:ring-2 focus:ring-[#8C3A27]/30"
-              />
+              <input {...register("neighborhood")} className={fieldClass} />
+              <FieldError message={errors.neighborhood?.message} />
             </label>
           </div>
 
@@ -198,38 +202,40 @@ export const EditSpaceModal: React.FC<EditSpaceModalProps> = ({
               <div className="grid gap-2 rounded-2xl border border-[#E5D1C6] bg-[#FDF8F6] p-3">
                 {commonAreaOptions.map((area) => (
                   <button
-                    key={area}
+                    key={area.id}
                     type="button"
-                    onClick={() => toggle(areas, setAreas, area)}
+                    onClick={() => toggle("commonAreas", areas, area.name)}
                     className={`rounded-xl px-3 py-2 text-left text-sm transition ${
-                      areas.includes(area)
+                      areas.includes(area.name)
                         ? "bg-[#8C3A27] text-white"
                         : "bg-white text-[#5C5C5C] border border-[#E5D1C6]"
                     }`}
                   >
-                    {area}
+                    {area.name}
                   </button>
                 ))}
               </div>
+              <FieldError message={errors.commonAreas?.message} />
             </div>
             <div className="text-sm text-[#5C5C5C]">
               <p className="mb-2">Amenidades</p>
               <div className="grid gap-2 rounded-2xl border border-[#E5D1C6] bg-[#FDF8F6] p-3">
                 {amenityOptions.map((amenity) => (
                   <button
-                    key={amenity}
+                    key={amenity.id}
                     type="button"
-                    onClick={() => toggle(amenities, setAmenities, amenity)}
+                    onClick={() => toggle("amenities", amenities, amenity.name)}
                     className={`rounded-xl px-3 py-2 text-left text-sm transition ${
-                      amenities.includes(amenity)
+                      amenities.includes(amenity.name)
                         ? "bg-[#8C3A27] text-white"
                         : "bg-white text-[#5C5C5C] border border-[#E5D1C6]"
                     }`}
                   >
-                    {amenity}
+                    {amenity.name}
                   </button>
                 ))}
               </div>
+              <FieldError message={errors.amenities?.message} />
             </div>
           </div>
         </div>
@@ -244,10 +250,10 @@ export const EditSpaceModal: React.FC<EditSpaceModalProps> = ({
           </button>
           <button
             type="submit"
-            disabled={saving}
+            disabled={isSubmitting}
             className="flex-1 rounded-full bg-[#8C3A27] py-3 font-bold text-white hover:bg-[#702d1f] transition disabled:opacity-50"
           >
-            {saving ? "Guardando..." : "Guardar cambios"}
+            {isSubmitting ? "Guardando..." : "Guardar cambios"}
           </button>
         </div>
       </form>

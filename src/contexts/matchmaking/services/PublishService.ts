@@ -1,7 +1,6 @@
 import api from "../../identity-profile/services/api";
 import { getSupabase } from "../../../config/supabaseClient";
 
-
 const bucket = import.meta.env.VITE_SUPABASE_BUCKET || "department-photos";
 
 export interface PublishedSpace {
@@ -83,7 +82,6 @@ export async function listSpaces(): Promise<PublishedSpace[]> {
   return response.data?.data || response.data || [];
 }
 
-
 export async function updateSpace(
   spaceId: string,
   payload: Partial<{
@@ -102,7 +100,6 @@ export async function updateSpace(
   const response = await api.put(`/api/v1/roomies/spaces/${spaceId}`, payload);
   return response.data;
 }
-
 
 export async function unpublishSpace(spaceId: string): Promise<void> {
   await api.delete(`/api/v1/roomies/spaces/${spaceId}`);

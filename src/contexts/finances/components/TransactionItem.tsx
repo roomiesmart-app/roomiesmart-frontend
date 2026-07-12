@@ -1,9 +1,9 @@
 import React from 'react';
-import { Receipt, ShoppingCart, Zap } from 'lucide-react'; // Iconos para tus tipos de gasto
-import type { Transaction } from '../models/finance.types'; // 🔥 CAMBIA ESTO: Debería ser Transaction, no RoommateDebt
+import { Receipt, ShoppingCart, Zap } from 'lucide-react';
+import type { Transaction } from '../models/finance.types';
 
 interface Props {
-  transaction: Transaction; 
+  transaction: Transaction;
 }
 
 export const TransactionItem: React.FC<Props> = ({ transaction }) => {
@@ -26,7 +26,7 @@ export const TransactionItem: React.FC<Props> = ({ transaction }) => {
           <p className="text-xs text-gray-500 font-medium">Pagado por {transaction.paidBy}</p>
         </div>
       </div>
-      
+
       <div className="text-right">
         <p className="font-bold text-gray-900">${transaction.totalAmount.toFixed(2)}</p>
         {transaction.yourShare && (

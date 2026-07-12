@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { ArrowLeft } from "lucide-react";
 import { useKindeAuth } from "@kinde-oss/kinde-auth-react";
 import { FilterSidebar } from "../components/FilterSidebar";
 import { ProfileCard, type ProfileData } from "../components/ProfileCard";
@@ -8,6 +10,7 @@ import { matchmakingService } from "../services/matchmaking.services";
 import type { MatchmakingFilters } from "../types/matchmaking.types";
 
 export const MatchmakingDashboardPage: React.FC = () => {
+  const navigate = useNavigate();
   const { user } = useKindeAuth();
   const { ownerId } = useRoomie();
   const [naturalProfiles, setNaturalProfiles] = useState<ProfileData[]>([]);
@@ -117,7 +120,15 @@ export const MatchmakingDashboardPage: React.FC = () => {
   }, [user?.email, user?.id]);
 
   return (
-    <main className="max-w-7xl mx-auto px-8 py-8 flex flex-col md:flex-row gap-12">
+    <div className="max-w-7xl mx-auto px-8 py-8">
+      <button
+        onClick={() => navigate(-1)}
+        className="mb-6 flex items-center gap-2 rounded-full border border-[#8C3A27] bg-white px-5 py-2.5 text-sm font-semibold text-[#8C3A27] hover:bg-[#F9F2EE] transition"
+      >
+        <ArrowLeft size={16} /> Volver
+      </button>
+
+      <main className="flex flex-col md:flex-row gap-12">
       <aside className="w-full md:w-72 border-r border-gray-200 pr-8">
         <FilterSidebar onFiltersChange={setCurrentFilters} />
         <button
@@ -192,6 +203,7 @@ export const MatchmakingDashboardPage: React.FC = () => {
           onClose={() => setChatTarget(null)}
         />
       )}
-    </main>
+      </main>
+    </div>
   );
 };

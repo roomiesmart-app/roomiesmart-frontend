@@ -1,9 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { Plus, X, Receipt, DollarSign } from 'lucide-react';
 import api from '../../identity-profile/services/api';
 import { useRoomie } from '../../roomie/RoomieContext';
 import { financesService } from '../services/finances.service';
+import { expenseSchema, type ExpenseFormValues } from '../schemas/expense.schema';
 import {
   getDepartmentMembers,
   type DepartmentMembersInfo,
@@ -32,10 +35,18 @@ export const FinanceDashboardPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   const [showAddExpense, setShowAddExpense] = useState(false);
-  const [expenseTitle, setExpenseTitle] = useState('');
-  const [expenseAmount, setExpenseAmount] = useState('');
-  const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+
+  const {
+    register: registerExpense,
+    handleSubmit: handleExpenseSubmit,
+    reset: resetExpenseForm,
+    formState: { errors: expenseErrors, isSubmitting: submittingExpense },
+  } = useForm<ExpenseFormValues>({
+    resolver: zodResolver(expenseSchema),
+    mode: 'onTouched',
+    defaultValues: { title: '', amount: '' },
+  });
 
   const fetchUserProfile = useCallback(async () => {
     try {
@@ -43,7 +54,7 @@ export const FinanceDashboardPage: React.FC = () => {
       const userProfile = response.data.data;
       setMonthlyBudget(userProfile.monthlyBudget ?? 0);
       setDbUserId(userProfile.id);
-     
+
       setDepartmentId(publishedDepartmentId || userProfile.departmentId || '');
       setProfileLoaded(true);
     } catch (err) {
@@ -53,7 +64,7 @@ export const FinanceDashboardPage: React.FC = () => {
     }
   }, [publishedDepartmentId]);
 
- 
+
   useEffect(() => {
     if (!departmentId) {
       setMembersInfo(null);
@@ -78,12 +89,12 @@ export const FinanceDashboardPage: React.FC = () => {
   const loadDashboard = useCallback(async () => {
     if (!dbUserId) return;
     if (!departmentId) {
-      
+
       if (profileLoaded) setLoading(false);
       return;
     }
     if (membersInfo && !membersInfo.sharedFinancesEnabled) {
-      
+
       setData(null);
       setLoading(false);
       return;
@@ -115,13 +126,13 @@ export const FinanceDashboardPage: React.FC = () => {
 
   const closeAddExpense = () => {
     setShowAddExpense(false);
-    setExpenseTitle('');
-    setExpenseAmount('');
+    resetExpenseForm();
     setFormError(null);
   };
 
-  const handleAddExpense = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+
+
+  const onAddExpense = async (values: ExpenseFormValues) => {
     setFormError(null);
 
     if (!departmentId) {
@@ -129,26 +140,18 @@ export const FinanceDashboardPage: React.FC = () => {
       return;
     }
 
-    const amount = Number(expenseAmount);
-    if (!expenseTitle.trim()) {
-      setFormError('Ponle un título al gasto.');
-      return;
-    }
-    if (!amount || amount <= 0) {
-      setFormError('El valor debe ser un número mayor a cero.');
-      return;
-    }
-
-    setSubmitting(true);
     try {
-      await financesService.addExpense(departmentId, dbUserId, amount, expenseTitle.trim());
+      await financesService.addExpense(
+        departmentId,
+        dbUserId,
+        Number(values.amount),
+        values.title.trim(),
+      );
       closeAddExpense();
       await loadDashboard();
     } catch (err) {
       console.error(err);
       setFormError('No se pudo registrar el gasto. Intenta de nuevo.');
-    } finally {
-      setSubmitting(false);
     }
   };
 
@@ -193,19 +196,21 @@ export const FinanceDashboardPage: React.FC = () => {
             <h3 className="text-xl font-extrabold text-gray-900 mb-1">Nuevo gasto</h3>
             <p className="text-gray-500 text-sm mb-6">Regístralo para dividirlo entre todos.</p>
 
-            <form onSubmit={handleAddExpense} className="space-y-5">
+            <form onSubmit={handleExpenseSubmit(onAddExpense)} className="space-y-5">
               <div>
                 <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
                   <Receipt size={14} /> ¿Qué fue?
                 </label>
                 <input
                   type="text"
-                  value={expenseTitle}
-                  onChange={(e) => setExpenseTitle(e.target.value)}
+                  {...registerExpense('title')}
                   placeholder="Internet, limpieza, mercado..."
                   autoFocus
                   className="w-full border border-gray-200 rounded-2xl px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#8C3A27]/30 focus:border-[#8C3A27] transition-all"
                 />
+                {expenseErrors.title && (
+                  <p className="mt-1 text-xs text-red-600">{expenseErrors.title.message}</p>
+                )}
               </div>
 
               <div>
@@ -218,12 +223,14 @@ export const FinanceDashboardPage: React.FC = () => {
                     type="number"
                     min="0"
                     step="0.01"
-                    value={expenseAmount}
-                    onChange={(e) => setExpenseAmount(e.target.value)}
+                    {...registerExpense('amount')}
                     placeholder="0.00"
                     className="w-full border border-gray-200 rounded-2xl pl-8 pr-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#8C3A27]/30 focus:border-[#8C3A27] transition-all"
                   />
                 </div>
+                {expenseErrors.amount && (
+                  <p className="mt-1 text-xs text-red-600">{expenseErrors.amount.message}</p>
+                )}
               </div>
 
               {formError && (
@@ -242,10 +249,10 @@ export const FinanceDashboardPage: React.FC = () => {
                 </button>
                 <button
                   type="submit"
-                  disabled={submitting}
+                  disabled={submittingExpense}
                   className="flex-1 py-3 rounded-full font-bold text-white bg-[#8C3A27] hover:bg-[#7a3222] disabled:opacity-50 transition-colors"
                 >
-                  {submitting ? 'Guardando...' : 'Registrar gasto'}
+                  {submittingExpense ? 'Guardando...' : 'Registrar gasto'}
                 </button>
               </div>
             </form>

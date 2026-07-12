@@ -1,7 +1,3 @@
-// Wrapper del módulo WASM de finanzas (assembly/finances.ts).
-// Carga única (promesa cacheada) + fallback JS puro: si el .wasm no
-// está disponible, los números salen idénticos por la vía JS.
-
 interface FinancesWasmExports {
   reset(): void;
   splitEqual(total: number, members: number): number;
@@ -28,14 +24,14 @@ async function loadWasm(): Promise<FinancesWasmExports | null> {
 
     let instance: WebAssembly.Instance;
     try {
-      // Vía rápida (requiere Content-Type: application/wasm)
+
       const streamed = await WebAssembly.instantiateStreaming(
         response.clone(),
         imports,
       );
       instance = streamed.instance;
     } catch {
-      // Fallback si el servidor no manda el MIME correcto
+
       const bytes = await response.arrayBuffer();
       const compiled = await WebAssembly.instantiate(bytes, imports);
       instance = compiled.instance;
@@ -63,7 +59,7 @@ export interface FinanceSummary {
   houseTotal: number;
   youOwe: number;
   owedToYou: number;
-  /** Cuota por persona de cada gasto, en el mismo orden de entrada */
+
   shares: number[];
 }
 
@@ -87,7 +83,6 @@ export async function computeFinanceSummary(
     };
   }
 
-  // Fallback JS puro: misma aritmética que assembly/finances.ts
   let houseTotal = 0;
   let youOwe = 0;
   let owedToYou = 0;

@@ -2,7 +2,7 @@ import React from "react";
 
 export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  /** primary = café sólido; secondary = borde café; danger = rojo suave */
+
   variant?: "primary" | "secondary" | "danger";
   size?: "sm" | "md" | "lg";
   fullWidth?: boolean;
@@ -21,7 +21,6 @@ const sizeClasses: Record<NonNullable<ButtonProps["size"]>, string> = {
   lg: "px-8 py-4 text-base",
 };
 
-/** Botón principal de RoomieSmart (pastilla café del design system). */
 export const Button: React.FC<ButtonProps> = ({
   variant = "primary",
   size = "md",
