@@ -9,6 +9,9 @@ export const expenseSchema = z.object({
       (v) => Number(v) > 0,
       "El valor debe ser un número mayor a cero.",
     ),
+  participantIds: z
+    .array(z.string())
+    .min(1, "Selecciona al menos una persona involucrada en el gasto."),
 });
 
 export type ExpenseFormValues = z.infer<typeof expenseSchema>;

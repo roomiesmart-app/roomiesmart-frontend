@@ -104,18 +104,3 @@ export async function updateSpace(
 export async function unpublishSpace(spaceId: string): Promise<void> {
   await api.delete(`/api/v1/roomies/spaces/${spaceId}`);
 }
-
-export async function addExpense(payload: {
-  departmentId: string;
-  payerId: string;
-  amount: number;
-  description: string;
-}) {
-  const response = await api.post("/api/expenses", payload);
-  return response.data;
-}
-
-export async function getExpenses(departmentId: string) {
-  const response = await api.get(`/api/expenses/${departmentId}`);
-  return response.data;
-}
