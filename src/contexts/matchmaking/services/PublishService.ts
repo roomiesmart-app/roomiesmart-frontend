@@ -82,6 +82,20 @@ export async function listSpaces(): Promise<PublishedSpace[]> {
   return response.data?.data || response.data || [];
 }
 
+export interface MyDepartment extends PublishedSpace {
+  membership_role: "owner" | "member";
+}
+
+// Departamentos donde el usuario es dueño O miembro activo
+export async function listMyDepartments(
+  userId: string,
+): Promise<MyDepartment[]> {
+  const response = await api.get(
+    `/api/v1/roomies/users/${encodeURIComponent(userId)}/departments`,
+  );
+  return response.data?.data || [];
+}
+
 export async function updateSpace(
   spaceId: string,
   payload: Partial<{
@@ -103,19 +117,4 @@ export async function updateSpace(
 
 export async function unpublishSpace(spaceId: string): Promise<void> {
   await api.delete(`/api/v1/roomies/spaces/${spaceId}`);
-}
-
-export async function addExpense(payload: {
-  departmentId: string;
-  payerId: string;
-  amount: number;
-  description: string;
-}) {
-  const response = await api.post("/api/expenses", payload);
-  return response.data;
-}
-
-export async function getExpenses(departmentId: string) {
-  const response = await api.get(`/api/expenses/${departmentId}`);
-  return response.data;
 }

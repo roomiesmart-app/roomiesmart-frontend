@@ -15,6 +15,8 @@ import {
   editSpaceSchema,
   type EditSpaceFormValues,
 } from "../schemas/publishSpace.schema";
+import { FieldError } from "../../../shared/components/ui/FieldError";
+import { ModalShell } from "../../../shared/components/ui/ModalShell";
 
 const roomTypes = [
   "Departamento completo",
@@ -24,9 +26,6 @@ const roomTypes = [
 
 const fieldClass =
   "rounded-2xl border border-[#E5D1C6] bg-[#FDF8F6] p-3 focus:outline-none focus:ring-2 focus:ring-[#8C3A27]/30";
-
-const FieldError = ({ message }: { message?: string }) =>
-  message ? <span className="text-xs text-red-600">{message}</span> : null;
 
 interface EditSpaceModalProps {
   space: PublishedSpace;
@@ -113,15 +112,11 @@ export const EditSpaceModal: React.FC<EditSpaceModalProps> = ({
   };
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4 py-8"
-      onClick={onClose}
+    <ModalShell
+      onClose={onClose}
+      panelClassName="max-w-2xl max-h-[90vh] overflow-y-auto rounded-[28px] p-8"
     >
-      <form
-        onSubmit={handleSubmit(onSubmit)}
-        onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-2xl max-h-full overflow-y-auto rounded-[28px] bg-white p-8 shadow-2xl"
-      >
+      <form onSubmit={handleSubmit(onSubmit)}>
         <div className="mb-6 flex items-start justify-between">
           <div>
             <h2 className="text-2xl font-extrabold text-[#3B241C]">
@@ -257,6 +252,6 @@ export const EditSpaceModal: React.FC<EditSpaceModalProps> = ({
           </button>
         </div>
       </form>
-    </div>
+    </ModalShell>
   );
 };
