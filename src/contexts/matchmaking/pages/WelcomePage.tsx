@@ -2,25 +2,72 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { useKindeAuth } from "@kinde-oss/kinde-auth-react";
 import { Header } from "../../../shared/components/Header";
+import { useHomeMetrics } from "../../../hooks/useHomeMetrics";
+import type { Transaction } from "../../finances/models/finance.types";
+
+const previewAmount = (tx: Transaction) => {
+  if (tx.paidBy === "Ti") {
+    return {
+      text: `$${tx.totalAmount.toFixed(2)}`,
+      className: "text-teal-600 font-bold",
+    };
+  }
+  if (tx.yourShare !== undefined && !tx.yourSharePaid) {
+    return {
+      text: `-$${tx.yourShare.toFixed(2)}`,
+      className: "text-red-500 font-bold",
+    };
+  }
+  return {
+    text: `$${tx.totalAmount.toFixed(2)}`,
+    className: "text-gray-500 font-bold",
+  };
+};
 
 export const WelcomePage: React.FC = () => {
   const navigate = useNavigate();
   const { user, logout } = useKindeAuth();
+  const {
+    matchesCount,
+    messagesCount,
+    daysRemaining,
+    balance,
+    latestTransactions,
+    hasDepartment,
+  } = useHomeMetrics();
 
   const firstName = user?.givenName || "Roomie";
   const lastName = user?.familyName || "";
 
   const handleLogout = () => {
-    // Limpia la sesión local antes de cerrar sesión en Kinde
+
     window.localStorage.removeItem("roomieSmartState");
     logout();
   };
 
+  const balanceDisplay =
+    balance === null
+      ? "—"
+      : `${balance >= 0 ? "+" : "-"}$${Math.abs(balance).toFixed(2)}`;
+
   const metrics = [
-    { label: "MATCHES", value: "12" },
-    { label: "MENSAJES", value: "3" },
-    { label: "DÍAS RESTANTES", value: "08" },
-    { label: "BALANCE", value: "+$1.2k", isPositive: true },
+    {
+      label: "MATCHES",
+      value: matchesCount === null ? "—" : String(matchesCount),
+    },
+    {
+      label: "MENSAJES",
+      value: messagesCount === null ? "—" : String(messagesCount),
+    },
+    {
+      label: "DÍAS RESTANTES",
+      value: String(daysRemaining).padStart(2, "0"),
+    },
+    {
+      label: "BALANCE",
+      value: balanceDisplay,
+      isPositive: (balance ?? 0) >= 0,
+    },
   ];
 
   return (
@@ -61,8 +108,11 @@ export const WelcomePage: React.FC = () => {
               >
                 Explorar Matches
               </button>
-              <button className="bg-white text-gray-700 border border-gray-200 px-6 py-3 rounded-full font-semibold hover:bg-gray-50 transition">
-                Ver Favoritos
+              <button
+                onClick={() => navigate("/mensajes")}
+                className="bg-white text-gray-700 border border-gray-200 px-6 py-3 rounded-full font-semibold hover:bg-gray-50 transition"
+              >
+                Ver mensajes
               </button>
             </div>
           </div>
@@ -85,15 +135,33 @@ export const WelcomePage: React.FC = () => {
           </div>
 
           <div className="space-y-4">
-            <div className="flex justify-between items-center bg-gray-50 p-4 rounded-2xl">
-              <span className="text-sm font-semibold">Alquiler Mayo</span>
-              <span className="text-teal-600 font-bold">$450.00</span>
-            </div>
-            <div className="flex justify-between items-center bg-gray-50 p-4 rounded-2xl">
-              <span className="text-sm font-semibold">Servicios</span>
-              <span className="text-red-500 font-bold">-$12.40</span>
-            </div>
-            
+            {latestTransactions.length > 0 ? (
+              latestTransactions.map((tx) => {
+                const amount = previewAmount(tx);
+                return (
+                  <div
+                    key={tx.id}
+                    className="flex justify-between items-center bg-gray-50 p-4 rounded-2xl"
+                  >
+                    <span className="text-sm font-semibold truncate pr-2">
+                      {tx.title}
+                    </span>
+                    <span className={`whitespace-nowrap ${amount.className}`}>
+                      {amount.text}
+                    </span>
+                  </div>
+                );
+              })
+            ) : (
+              <div className="flex justify-between items-center bg-gray-50 p-4 rounded-2xl">
+                <span className="text-sm font-semibold text-gray-500">
+                  {hasDepartment
+                    ? "Sin gastos registrados aún"
+                    : "Vincula un departamento"}
+                </span>
+              </div>
+            )}
+
             <button
               onClick={() => navigate("/finanzas")}
               className="w-full bg-[#8C3A27] text-white py-4 rounded-2xl font-semibold mt-4 hover:bg-[#702d1f] transition-colors"

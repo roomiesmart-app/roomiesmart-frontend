@@ -18,7 +18,7 @@ export default function OnboardingLayout() {
         </div>
         <div className="text-sm font-bold text-neutral">Paso {step} de 4</div>
       </header>
-      
+
       <Outlet />
     </div>
   );

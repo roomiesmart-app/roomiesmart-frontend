@@ -7,7 +7,7 @@ export interface HeaderProps {
   userSubtitle?: string;
   avatarUrl?: string;
   onLogout?: () => void;
-  /** Apagar en Storybook: la campanita depende de Supabase y RoomieContext */
+
   showBell?: boolean;
 }
 

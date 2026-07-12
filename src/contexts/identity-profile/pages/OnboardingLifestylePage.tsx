@@ -98,7 +98,7 @@ export default function OnboardingLifestylePage() {
                   }
                   className={`w-full flex items-start sm:items-center justify-between p-5 rounded-2xl border transition-all text-left ${
                     lifestyle.isEarlyBird
-                      ? 'bg-[#EAF4F4] border-[#81B29A] shadow-sm' 
+                      ? 'bg-[#EAF4F4] border-[#81B29A] shadow-sm'
                       : 'bg-white border-primary/10 hover:border-primary/30'
                   }`}
                 >
@@ -126,7 +126,7 @@ export default function OnboardingLifestylePage() {
                   }
                   className={`w-full flex items-start sm:items-center justify-between p-5 rounded-2xl border transition-all text-left ${
                     lifestyle.useCommonAreasAtNight
-                      ? 'bg-[#1D3557] border-[#1D3557] shadow-sm' 
+                      ? 'bg-[#1D3557] border-[#1D3557] shadow-sm'
                       : 'bg-white border-primary/10 hover:border-primary/30'
                   }`}
                 >

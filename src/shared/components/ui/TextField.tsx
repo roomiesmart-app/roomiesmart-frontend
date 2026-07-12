@@ -28,8 +28,8 @@ export const TextField: React.FC<TextFieldProps> = ({
         onChange={onChange}
         placeholder={placeholder}
         disabled={disabled}
-        className={`w-full px-4 py-3 rounded-xl border bg-gray-50/50 focus:bg-white transition-all outline-none 
-          ${disabled ? 'opacity-60 cursor-not-allowed bg-gray-100' : ''} 
+        className={`w-full px-4 py-3 rounded-xl border bg-gray-50/50 focus:bg-white transition-all outline-none
+          ${disabled ? 'opacity-60 cursor-not-allowed bg-gray-100' : ''}
           ${error ? 'border-red-500 focus:ring-2 focus:ring-red-200' : 'border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20'}
         `}
       />

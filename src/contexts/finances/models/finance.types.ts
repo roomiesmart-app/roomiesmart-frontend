@@ -4,9 +4,22 @@ export interface Transaction {
   paidBy: string;
   sharedWithCount: number;
   totalAmount: number;
-  yourShare?: number; 
-  owedToYou?: number; 
+  yourShare?: number;
+  yourSharePaid?: boolean;
+  owedToYou?: number;
+  // Estado de pago del gasto completo
+  isPaid: boolean;
+  paidDebtors: number;
+  totalDebtors: number;
   type: 'shopping' | 'utilities' | 'cleaning';
+}
+
+export interface DebtBreakdownItem {
+  expenseId: string;
+  title: string;
+  amount: number;
+  // 'they_owe' = ese roomie me debe esta parte; 'i_owe' = yo le debo esta parte
+  kind: 'they_owe' | 'i_owe';
 }
 
 export interface RoommateDebt {
@@ -15,4 +28,5 @@ export interface RoommateDebt {
   avatarSeed: string;
   amount: number;
   type: 'owes_you' | 'you_owe';
+  breakdown: DebtBreakdownItem[];
 }

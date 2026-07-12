@@ -1,7 +1,5 @@
 import { z } from "zod";
 
-// Espejo de las reglas del backend (PublishSpaceDto): si cambia una,
-// actualizar ambos lados.
 export const publishSpaceSchema = z.object({
   title: z
     .string()
@@ -31,7 +29,13 @@ export const publishSpaceSchema = z.object({
 
 export type PublishSpaceFormValues = z.infer<typeof publishSpaceSchema>;
 
-// Campos que valida cada paso del wizard (para trigger() de RHF)
+export const editSpaceSchema = publishSpaceSchema.omit({
+  photos: true,
+  cityId: true,
+});
+
+export type EditSpaceFormValues = z.infer<typeof editSpaceSchema>;
+
 export const stepFields: Record<number, (keyof PublishSpaceFormValues)[]> = {
   1: ["title", "description", "photos"],
   2: [

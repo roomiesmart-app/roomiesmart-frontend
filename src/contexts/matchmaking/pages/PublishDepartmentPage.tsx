@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useQuery } from "@tanstack/react-query";
 import { PublishDepartmentStepIndicator } from "../components/PublishDepartmentStepIndicator";
 import { useRoomie } from "../../../contexts/roomie/RoomieContext";
 import {
@@ -9,43 +10,51 @@ import {
   uploadDepartmentPhotos,
 } from "../services/PublishService";
 import {
+  fetchCities,
+  fetchCommonAreas,
+  fetchAmenities,
+  CATALOG_QUERY_OPTIONS,
+} from "../services/CatalogService";
+import {
   publishSpaceSchema,
   stepFields,
   type PublishSpaceFormValues,
 } from "../schemas/publishSpace.schema";
+import { FieldError } from "../../../shared/components/ui/FieldError";
 
 const roomTypes = [
   "Departamento completo",
   "Habitación privada",
   "Habitación compartida",
 ];
-// Estos UUIDs DEBEN existir en la tabla `cities` de Supabase.
-// Verificado contra la BD real el 2026-07-05.
-const cityOptions = [
-  { id: "45fe5500-38ec-42d7-b524-a605cf148205", label: "Quito" },
-  { id: "22222222-2222-2222-2222-222222222222", label: "Guayaquil" },
-  { id: "33333333-3333-3333-3333-333333333333", label: "Cuenca" },
-];
-const commonAreas = ["Sala", "Cocina", "Baño compartido", "Terraza"];
-const amenities = [
-  "Wi-Fi",
-  "Lavadora",
-  "Aire acondicionado",
-  "Parqueadero",
-  "Muebles incluidos",
-];
+
+// Por ahora la publicación de espacios solo está disponible en Quito
+const FIXED_CITY_NAME = "Quito";
 
 const inputClass =
   "rounded-3xl border border-[#E5D1C6] bg-[#FDF8F6] p-4 focus:outline-none focus:ring-2 focus:ring-[#8C3A27]/30";
-
-const FieldError = ({ message }: { message?: string }) =>
-  message ? <span className="text-xs text-red-600">{message}</span> : null;
 
 export const PublishDepartmentPage: React.FC = () => {
   const [step, setStep] = useState(1);
   const [submissionError, setSubmissionError] = useState("");
   const navigate = useNavigate();
   const { ownerId, setDepartmentId } = useRoomie();
+
+  const { data: cities = [], isError: citiesError } = useQuery({
+    queryKey: ["catalog", "cities"],
+    queryFn: fetchCities,
+    ...CATALOG_QUERY_OPTIONS,
+  });
+  const { data: commonAreaOptions = [] } = useQuery({
+    queryKey: ["catalog", "common-areas"],
+    queryFn: fetchCommonAreas,
+    ...CATALOG_QUERY_OPTIONS,
+  });
+  const { data: amenityOptions = [] } = useQuery({
+    queryKey: ["catalog", "amenities"],
+    queryFn: fetchAmenities,
+    ...CATALOG_QUERY_OPTIONS,
+  });
 
   const {
     register,
@@ -71,11 +80,21 @@ export const PublishDepartmentPage: React.FC = () => {
     },
   });
 
-  // Campos controlados manualmente (no son inputs nativos)
   const photos = watch("photos");
   const selectedAreas = watch("commonAreas");
   const selectedAmenities = watch("amenities");
   const watchedValues = watch();
+
+  const fixedCity = cities.find(
+    (city) => city.name.trim().toLowerCase() === FIXED_CITY_NAME.toLowerCase(),
+  );
+
+  // La ciudad está fija en Quito: se asigna sola cuando llega el catálogo
+  useEffect(() => {
+    if (fixedCity) {
+      setValue("cityId", fixedCity.id, { shouldValidate: true });
+    }
+  }, [fixedCity, setValue]);
 
   const handlePhotos = (files: FileList | null) => {
     if (!files) return;
@@ -107,13 +126,13 @@ export const PublishDepartmentPage: React.FC = () => {
 
   const handleContinue = async () => {
     setSubmissionError("");
-    // Valida SOLO los campos del paso actual (RHF trigger)
+
     const isValid = await trigger(stepFields[step]);
     if (isValid && step < 3) setStep(step + 1);
   };
 
   const handleBack = () => {
-    // En el paso 1 regresa a la vista anterior (dashboard, explorar, etc.)
+
     if (step === 1) {
       navigate(-1);
       return;
@@ -313,15 +332,28 @@ export const PublishDepartmentPage: React.FC = () => {
                     </label>
                     <label className="flex flex-col gap-2 text-sm text-[#5C5C5C]">
                       Ciudad
-                      <select {...register("cityId")} className={inputClass}>
-                        <option value="">Selecciona ciudad</option>
-                        {cityOptions.map((city) => (
-                          <option key={city.id} value={city.id}>
-                            {city.label}
-                          </option>
-                        ))}
-                      </select>
+                      <input
+                        value={
+                          cities.length === 0
+                            ? "Cargando ciudades..."
+                            : FIXED_CITY_NAME
+                        }
+                        disabled
+                        readOnly
+                        className={`${inputClass} cursor-not-allowed opacity-70`}
+                      />
+                      <span className="text-xs text-gray-400">
+                        Por ahora solo publicamos espacios en {FIXED_CITY_NAME}.
+                      </span>
                       <FieldError message={errors.cityId?.message} />
+                      {cities.length > 0 && !fixedCity && (
+                        <FieldError
+                          message={`La ciudad ${FIXED_CITY_NAME} no está disponible en el catálogo. Contacta al administrador.`}
+                        />
+                      )}
+                      {citiesError && (
+                        <FieldError message="No se pudieron cargar las ciudades. Recarga la página." />
+                      )}
                     </label>
                     <label className="flex flex-col gap-2 text-sm text-[#5C5C5C]">
                       Barrio / Sector
@@ -361,16 +393,20 @@ export const PublishDepartmentPage: React.FC = () => {
                       <div className="flex flex-col gap-2 text-sm text-[#5C5C5C]">
                         Áreas comunes
                         <div className="grid gap-2 rounded-3xl border border-[#E5D1C6] bg-[#FDF8F6] p-4">
-                          {commonAreas.map((area) => (
+                          {commonAreaOptions.map((area) => (
                             <button
-                              key={area}
+                              key={area.id}
                               type="button"
                               onClick={() =>
-                                toggleInList("commonAreas", selectedAreas, area)
+                                toggleInList(
+                                  "commonAreas",
+                                  selectedAreas,
+                                  area.name,
+                                )
                               }
-                              className={`rounded-2xl px-4 py-2 text-left text-sm transition ${selectedAreas.includes(area) ? "bg-[#8C3A27] text-white" : "bg-white text-[#5C5C5C] border border-[#E5D1C6]"}`}
+                              className={`rounded-2xl px-4 py-2 text-left text-sm transition ${selectedAreas.includes(area.name) ? "bg-[#8C3A27] text-white" : "bg-white text-[#5C5C5C] border border-[#E5D1C6]"}`}
                             >
-                              {area}
+                              {area.name}
                             </button>
                           ))}
                         </div>
@@ -381,20 +417,20 @@ export const PublishDepartmentPage: React.FC = () => {
                     <div className="flex flex-col gap-2 text-sm text-[#5C5C5C]">
                       Amenidades
                       <div className="grid gap-2 rounded-3xl border border-[#E5D1C6] bg-[#FDF8F6] p-4">
-                        {amenities.map((amenity) => (
+                        {amenityOptions.map((amenity) => (
                           <button
-                            key={amenity}
+                            key={amenity.id}
                             type="button"
                             onClick={() =>
                               toggleInList(
                                 "amenities",
                                 selectedAmenities,
-                                amenity,
+                                amenity.name,
                               )
                             }
-                            className={`rounded-2xl px-4 py-2 text-left text-sm transition ${selectedAmenities.includes(amenity) ? "bg-[#8C3A27] text-white" : "bg-white text-[#5C5C5C] border border-[#E5D1C6]"}`}
+                            className={`rounded-2xl px-4 py-2 text-left text-sm transition ${selectedAmenities.includes(amenity.name) ? "bg-[#8C3A27] text-white" : "bg-white text-[#5C5C5C] border border-[#E5D1C6]"}`}
                           >
-                            {amenity}
+                            {amenity.name}
                           </button>
                         ))}
                       </div>
@@ -447,9 +483,8 @@ export const PublishDepartmentPage: React.FC = () => {
                         </p>
                         <p className="text-[#4D403D]">
                           {[
-                            cityOptions.find(
-                              (c) => c.id === watchedValues.cityId,
-                            )?.label,
+                            cities.find((c) => c.id === watchedValues.cityId)
+                              ?.name,
                             watchedValues.neighborhood,
                           ]
                             .filter(Boolean)

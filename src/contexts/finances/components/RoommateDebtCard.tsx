@@ -3,9 +3,17 @@ import type { RoommateDebt } from '../models/finance.types';
 
 interface Props {
   data: RoommateDebt;
+  onRemind?: () => void;
+  onDetails?: () => void;
+  remindBusy?: boolean;
 }
 
-export const RoommateDebtCard: React.FC<Props> = ({ data }) => {
+export const RoommateDebtCard: React.FC<Props> = ({
+  data,
+  onRemind,
+  onDetails,
+  remindBusy = false,
+}) => {
   const isOwed = data.type === 'owes_you';
 
   return (
@@ -19,14 +27,28 @@ export const RoommateDebtCard: React.FC<Props> = ({ data }) => {
           </p>
         </div>
       </div>
-      
+
       {isOwed ? (
         <div className="flex gap-2">
-          <button className="flex-1 border border-gray-200 text-gray-700 py-2 rounded-full text-sm font-bold hover:bg-gray-50 transition-colors">Recordar</button>
-          <button className="flex-1 bg-[#E0E7FF] text-[#4338CA] py-2 rounded-full text-sm font-bold hover:bg-[#C7D2FE] transition-colors">Detalles</button>
+          <button
+            onClick={onRemind}
+            disabled={remindBusy}
+            className="flex-1 border border-gray-200 text-gray-700 py-2 rounded-full text-sm font-bold hover:bg-gray-50 transition-colors disabled:opacity-50"
+          >
+            {remindBusy ? 'Enviando...' : 'Recordar'}
+          </button>
+          <button
+            onClick={onDetails}
+            className="flex-1 bg-[#E0E7FF] text-[#4338CA] py-2 rounded-full text-sm font-bold hover:bg-[#C7D2FE] transition-colors"
+          >
+            Detalles
+          </button>
         </div>
       ) : (
-        <button className="w-full bg-[#8C3A27] text-white py-2 rounded-full text-sm font-bold hover:bg-[#7a3222] transition-colors">
+        <button
+          onClick={onDetails}
+          className="w-full bg-[#8C3A27] text-white py-2 rounded-full text-sm font-bold hover:bg-[#7a3222] transition-colors"
+        >
           Liquidar deuda
         </button>
       )}

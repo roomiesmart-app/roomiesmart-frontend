@@ -6,6 +6,10 @@ import {
   resolveRequest,
   type JoinRequest,
 } from "../services/MembershipService";
+import { Button } from "../../../shared/components/Button";
+import { PageHeader } from "../../../shared/components/ui/PageHeader";
+import { AlertBanner } from "../../../shared/components/ui/AlertBanner";
+import { EmptyState } from "../../../shared/components/ui/EmptyState";
 
 export const JoinRequestsPage: React.FC = () => {
   const navigate = useNavigate();
@@ -59,43 +63,26 @@ export const JoinRequestsPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-[#FDF7F5] px-6 py-8 sm:px-10 sm:py-12">
       <div className="mx-auto max-w-4xl">
-        <header className="mb-10 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <div>
-            <p className="mb-2 text-xs font-bold uppercase tracking-[0.24em] text-[#A3513D]">
-              Shared Spaces
-            </p>
-            <h1 className="text-4xl font-extrabold text-[#3B241C]">
-              Solicitudes de unión
-            </h1>
-            <p className="mt-2 text-gray-500">
-              Personas que quieren unirse a tus espacios publicados.
-            </p>
-          </div>
-          <button
-            onClick={() => navigate("/dashboard")}
-            className="rounded-full border border-[#8C3A27] bg-white px-6 py-3 text-sm font-semibold text-[#8C3A27] hover:bg-[#F9F2EE] transition"
-          >
-            Volver al inicio
-          </button>
-        </header>
+        <PageHeader
+          eyebrow="Shared Spaces"
+          title="Solicitudes de unión"
+          subtitle="Personas que quieren unirse a tus espacios publicados."
+          actions={
+            <Button variant="secondary" onClick={() => navigate("/dashboard")}>
+              Volver al inicio
+            </Button>
+          }
+        />
 
-        {error && (
-          <div className="mb-6 rounded-3xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-            {error}
-          </div>
-        )}
+        {error && <AlertBanner>{error}</AlertBanner>}
 
         {loading ? (
           <p className="text-center text-gray-500">Cargando solicitudes...</p>
         ) : requests.length === 0 ? (
-          <div className="rounded-[32px] border border-[#F1DED6] bg-white p-12 text-center">
-            <p className="mb-2 text-lg font-bold text-[#3B241C]">
-              No tienes solicitudes pendientes
-            </p>
-            <p className="text-sm text-gray-500">
-              Cuando alguien pida unirse a tu espacio, aparecerá aquí.
-            </p>
-          </div>
+          <EmptyState
+            title="No tienes solicitudes pendientes"
+            subtitle="Cuando alguien pida unirse a tu espacio, aparecerá aquí."
+          />
         ) : (
           <div className="space-y-4">
             {requests.map((request) => (
@@ -126,20 +113,19 @@ export const JoinRequestsPage: React.FC = () => {
                   </p>
                 </div>
                 <div className="flex gap-3">
-                  <button
+                  <Button
+                    variant="danger"
                     onClick={() => handleResolve(request, "reject")}
                     disabled={busyId === request.id}
-                    className="rounded-full border border-red-200 bg-red-50 px-6 py-2.5 text-sm font-semibold text-red-600 hover:bg-red-100 transition disabled:opacity-50"
                   >
                     Rechazar
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     onClick={() => handleResolve(request, "accept")}
                     disabled={busyId === request.id}
-                    className="rounded-full bg-[#8C3A27] px-6 py-2.5 text-sm font-semibold text-white hover:bg-[#702d1f] transition disabled:opacity-50"
                   >
                     {busyId === request.id ? "Procesando..." : "Aceptar"}
-                  </button>
+                  </Button>
                 </div>
               </article>
             ))}
