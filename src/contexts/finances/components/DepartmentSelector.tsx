@@ -1,9 +1,9 @@
 import React from 'react';
 import { Building2 } from 'lucide-react';
-import type { PublishedSpace } from '../../matchmaking/services/PublishService';
+import type { MyDepartment } from '../../matchmaking/services/PublishService';
 
 interface DepartmentSelectorProps {
-  spaces: PublishedSpace[];
+  spaces: MyDepartment[];
   selectedId: string;
   onSelect: (id: string) => void;
 }
@@ -20,6 +20,7 @@ export const DepartmentSelector: React.FC<DepartmentSelectorProps> = ({
     <div className="space-y-2">
       {spaces.map((space) => {
         const isSelected = space.id === selectedId;
+        const isOwner = space.membership_role === 'owner';
         return (
           <button
             key={space.id}
@@ -30,7 +31,20 @@ export const DepartmentSelector: React.FC<DepartmentSelectorProps> = ({
                 : 'bg-[#FDF8F6] text-gray-700 border border-[#F2E3DB] hover:bg-[#F9F2EE]'
             }`}
           >
-            <p className="font-bold line-clamp-1">{space.title}</p>
+            <div className="flex items-center justify-between gap-2">
+              <p className="font-bold line-clamp-1">{space.title}</p>
+              <span
+                className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                  isSelected
+                    ? 'bg-white/20 text-white'
+                    : isOwner
+                      ? 'bg-[#FDF0EB] text-[#8C3A27]'
+                      : 'bg-[#E0E7FF] text-[#4338CA]'
+                }`}
+              >
+                {isOwner ? 'Dueño' : 'Miembro'}
+              </span>
+            </div>
             <p className={`text-xs ${isSelected ? 'text-white/80' : 'text-gray-500'}`}>
               {space.neighborhood || space.location_address}
             </p>

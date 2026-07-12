@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -15,13 +15,17 @@ import {
   getDepartmentMembers,
   type DepartmentMembersInfo,
 } from '../../matchmaking/services/MembershipService';
-import { listSpaces } from '../../matchmaking/services/PublishService';
+import { listMyDepartments } from '../../matchmaking/services/PublishService';
 import { TransactionItem } from '../components/TransactionItem';
 import { RoommateDebtCard } from '../components/RoommateDebtCard';
 import { DepartmentSelector } from '../components/DepartmentSelector';
+import { DebtDetailModal } from '../components/DebtDetailModal';
 import { StatCard } from '../../../shared/components/ui/StatCard';
 import { ModalShell } from '../../../shared/components/ui/ModalShell';
 import { AlertBanner } from '../../../shared/components/ui/AlertBanner';
+import { Toast } from '../../../shared/components/ui/Toast';
+import { useToast } from '../../../hooks/useToast';
+import type { RoommateDebt } from '../models/finance.types';
 
 const memberName = (email?: string) => email?.split('@')[0] || 'Roomie';
 
@@ -42,6 +46,11 @@ export const FinanceDashboardPage: React.FC = () => {
 
   const [showAddExpense, setShowAddExpense] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+
+  const [detailRoomieId, setDetailRoomieId] = useState<string | null>(null);
+  const [remindingId, setRemindingId] = useState<string | null>(null);
+  const [payingExpenseId, setPayingExpenseId] = useState<string | null>(null);
+  const { toast, showToast } = useToast();
 
   const {
     register: registerExpense,
@@ -74,33 +83,28 @@ export const FinanceDashboardPage: React.FC = () => {
     fetchUserProfile();
   }, [fetchUserProfile]);
 
-  // Departamentos publicados por el usuario (para el selector)
-  const { data: allSpaces = [] } = useQuery({
-    queryKey: ['spaces', 'available'],
-    queryFn: listSpaces,
+  // Departamentos donde el usuario es dueño O miembro (para el selector)
+  const { data: myDepartments = [] } = useQuery({
+    queryKey: ['my-departments', dbUserId],
+    queryFn: () => listMyDepartments(dbUserId),
     staleTime: 60_000,
-    enabled: profileLoaded,
+    enabled: Boolean(dbUserId),
   });
-
-  const ownedSpaces = useMemo(
-    () => allSpaces.filter((space) => space.owner_id === dbUserId),
-    [allSpaces, dbUserId],
-  );
 
   useEffect(() => {
     if (!profileLoaded) return;
     setSelectedDepartmentId((current) => {
       const isValid =
         current &&
-        (ownedSpaces.some((s) => s.id === current) ||
+        (myDepartments.some((s) => s.id === current) ||
           current === profileDepartmentId);
       if (isValid) return current;
-      if (ownedSpaces.some((s) => s.id === publishedDepartmentId))
+      if (myDepartments.some((s) => s.id === publishedDepartmentId))
         return publishedDepartmentId;
-      if (ownedSpaces.length > 0) return ownedSpaces[0].id;
+      if (myDepartments.length > 0) return myDepartments[0].id;
       return profileDepartmentId || publishedDepartmentId || '';
     });
-  }, [profileLoaded, ownedSpaces, profileDepartmentId, publishedDepartmentId]);
+  }, [profileLoaded, myDepartments, profileDepartmentId, publishedDepartmentId]);
 
   useEffect(() => {
     if (!selectedDepartmentId) {
@@ -205,6 +209,47 @@ export const FinanceDashboardPage: React.FC = () => {
     }
   };
 
+  const activeDebt =
+    data?.roommateDebts.find((debt) => debt.id === detailRoomieId) ?? null;
+
+  const myName = memberName(
+    membersInfo?.members.find((m) => m.user_id === dbUserId)?.users?.email,
+  );
+
+  const handleRemind = async (debt: RoommateDebt) => {
+    setRemindingId(debt.id);
+    try {
+      await financesService.sendReminder({
+        debtorId: debt.id,
+        creditorName: myName,
+        amount: debt.amount,
+        items: debt.breakdown
+          .filter((item) => item.kind === 'they_owe')
+          .map((item) => `${item.title}: $${item.amount.toFixed(2)}`),
+      });
+      showToast(`Recordatorio enviado a ${debt.name} ✓`);
+    } catch (err) {
+      console.error(err);
+      showToast('No se pudo enviar el recordatorio.', 'error');
+    } finally {
+      setRemindingId(null);
+    }
+  };
+
+  const handlePayItem = async (expenseId: string) => {
+    setPayingExpenseId(expenseId);
+    try {
+      await financesService.payShare(expenseId, dbUserId);
+      showToast('Pago registrado ✓ Tu deuda se actualizó.');
+      await loadDashboard();
+    } catch (err) {
+      console.error(err);
+      showToast('No se pudo registrar el pago.', 'error');
+    } finally {
+      setPayingExpenseId(null);
+    }
+  };
+
   const watchedAmount = Number(watchExpense('amount')) || 0;
   const watchedParticipants = watchExpense('participantIds') || [];
   const previewShare =
@@ -225,7 +270,7 @@ export const FinanceDashboardPage: React.FC = () => {
   const availableDisplay =
     data && monthlyBudget > 0 ? `$${available.toFixed(2)}` : '---';
 
-  const showSelector = ownedSpaces.length > 1;
+  const showSelector = myDepartments.length > 1;
 
   return (
     <div className="flex-1 flex flex-col p-8 bg-[#FDFBF9] relative h-full overflow-y-auto">
@@ -322,6 +367,9 @@ export const FinanceDashboardPage: React.FC = () => {
                   );
                 })}
               </div>
+              <p className="mt-1 text-[11px] text-gray-400">
+                Puedes desmarcarte a ti mismo si compraste algo solo para otros.
+              </p>
               {expenseErrors.participantIds && (
                 <p className="mt-1 text-xs text-red-600">
                   {expenseErrors.participantIds.message}
@@ -398,7 +446,8 @@ export const FinanceDashboardPage: React.FC = () => {
                 Aún no tienes un departamento vinculado
               </h3>
               <p className="text-gray-500 text-sm mb-6">
-                Publica tu espacio para activar las finanzas compartidas con tus roomies.
+                Publica tu espacio o únete a un departamento para activar las
+                finanzas compartidas con tus roomies.
               </p>
               <button
                 onClick={() => navigate('/publish-department')}
@@ -433,7 +482,13 @@ export const FinanceDashboardPage: React.FC = () => {
           {data && data.roommateDebts.length > 0 && (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10">
               {data.roommateDebts.map((debt) => (
-                <RoommateDebtCard key={debt.id} data={debt} />
+                <RoommateDebtCard
+                  key={debt.id}
+                  data={debt}
+                  remindBusy={remindingId === debt.id}
+                  onRemind={() => handleRemind(debt)}
+                  onDetails={() => setDetailRoomieId(debt.id)}
+                />
               ))}
             </div>
           )}
@@ -455,12 +510,23 @@ export const FinanceDashboardPage: React.FC = () => {
 
         {showSelector && (
           <DepartmentSelector
-            spaces={ownedSpaces}
+            spaces={myDepartments}
             selectedId={selectedDepartmentId}
             onSelect={setSelectedDepartmentId}
           />
         )}
       </div>
+
+      {activeDebt && (
+        <DebtDetailModal
+          debt={activeDebt}
+          onClose={() => setDetailRoomieId(null)}
+          onPayItem={handlePayItem}
+          payingExpenseId={payingExpenseId}
+        />
+      )}
+
+      <Toast toast={toast} />
     </div>
   );
 };

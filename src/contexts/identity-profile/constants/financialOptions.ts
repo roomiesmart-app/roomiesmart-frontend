@@ -2,7 +2,7 @@ export interface RoomTypeOption {
   value: 'privada' | 'compartida';
   label: string;
 }
-
+//finance
 export interface ExpenseManagementOption {
   value: 'fondo-comun' | 'division-digital' | 'individual';
   title: string;

@@ -20,6 +20,8 @@ export function addExpense(
   paidByMe: i32,
   participants: i32,
   iParticipate: i32,
+  iHavePaid: i32,
+  unpaidOthers: i32,
 ): f64 {
   if (participants <= 0) return 0;
   houseTotal += amount;
@@ -30,9 +32,9 @@ export function addExpense(
   }
 
   if (paidByMe == 1) {
-    // Si participo, me deben todo menos mi parte; si no participo, me deben el total
-    owedToYou += iParticipate == 1 ? amount - share : amount;
-  } else if (iParticipate == 1) {
+    // Solo me deben las partes de quienes aún no han pagado
+    owedToYou += share * unpaidOthers;
+  } else if (iParticipate == 1 && iHavePaid == 0) {
     youOwe += share;
   }
 

@@ -6,6 +6,8 @@ interface FinancesWasmExports {
     paidByMe: number,
     participants: number,
     iParticipate: number,
+    iHavePaid: number,
+    unpaidOthers: number,
   ): number;
   getHouseTotal(): number;
   getYouOwe(): number;
@@ -45,10 +47,10 @@ async function loadWasm(): Promise<FinancesWasmExports | null> {
 
     const exports = instance.exports as unknown as FinancesWasmExports;
 
-    // Un binario viejo (sin participantes por gasto) no sirve: usar fallback JS
+    // Un binario viejo (sin participantes o sin pagos por gasto) no sirve: usar fallback JS
     if (
       typeof exports.getMyShareTotal !== "function" ||
-      exports.addExpense.length < 4
+      exports.addExpense.length < 6
     ) {
       console.warn("🧮 WASM desactualizado, usando fallback JS.");
       return null;
@@ -76,6 +78,12 @@ export interface ExpenseInput {
 
   // Si el usuario actual es una de esas personas
   iParticipate: boolean;
+
+  // Si el usuario actual ya pagó su parte al pagador
+  iHavePaid: boolean;
+
+  // Participantes distintos del pagador que aún no han pagado su parte
+  unpaidOthersCount: number;
 }
 
 export interface FinanceSummary {
@@ -102,6 +110,8 @@ export async function computeFinanceSummary(
         expense.paidByMe ? 1 : 0,
         Math.max(expense.participantCount, 1),
         expense.iParticipate ? 1 : 0,
+        expense.iHavePaid ? 1 : 0,
+        Math.max(expense.unpaidOthersCount, 0),
       ),
     );
     return {
@@ -125,8 +135,8 @@ export async function computeFinanceSummary(
     if (expense.iParticipate) myShareTotal += share;
 
     if (expense.paidByMe) {
-      owedToYou += expense.iParticipate ? expense.amount - share : expense.amount;
-    } else if (expense.iParticipate) {
+      owedToYou += share * Math.max(expense.unpaidOthersCount, 0);
+    } else if (expense.iParticipate && !expense.iHavePaid) {
       youOwe += share;
     }
     return share;
